@@ -62,7 +62,7 @@ def import_chapter_content():
     Markdown 内容会被存为原始文本，前端用 |safe 直接渲染。
     """
     app = create_app()
-    docsify_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'gauge-theory-course', 'lectures')
+    docsify_dir = os.path.join(BASE_DIR, 'gauge-theory-course', 'lectures')
 
     # Docsify Markdown → HTML 简单转换器
     def md_to_html(md_text):
