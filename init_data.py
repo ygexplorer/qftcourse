@@ -136,7 +136,7 @@ def import_chapter_content():
             # 关闭 blockquote（遇到空行或新标题时）
             if line.strip() == '' or line.startswith('#'):
                 if html_lines and html_lines[-1].startswith('<blockquote'):
-                    pass  # blockquote 内容继续
+                    html_lines.append('</blockquote>')  # 关闭 blockquote
 
             # 标题
             if line.startswith('####'):
