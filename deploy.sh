@@ -5,7 +5,7 @@
 
 set -e  # Exit on error
 
-PROJECT_DIR="/root/qftcourse"
+PROJECT_DIR="/home/ubuntu/qftcourse"
 VENV_DIR="$PROJECT_DIR/venv"
 USER="www-data"
 GROUP="www-data"

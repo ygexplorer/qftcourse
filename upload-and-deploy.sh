@@ -4,8 +4,8 @@
 # 用法: ./upload-and-deploy.sh
 
 SERVER_IP="150.158.103.51"
-SERVER_USER="root"
-REMOTE_DIR="/root/qftcourse"
+SERVER_USER="ubuntu"
+REMOTE_DIR="/home/ubuntu/qftcourse"
 
 echo "========================================="
 echo "正在上传代码到服务器..."

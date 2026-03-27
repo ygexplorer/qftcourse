@@ -30,7 +30,7 @@ sudo apt update
 sudo apt install -y python3-pip python3-venv nginx
 
 # 2. 克隆代码
-cd /root
+cd ~
 git clone https://github.com/ygexplorer/qftcourse.git
 cd qftcourse
 
@@ -53,11 +53,11 @@ systemctl enable gunicorn-qftcourse
 systemctl start gunicorn-qftcourse
 
 # 7. 配置 Nginx
-cp nginx.conf /etc/nginx/sites-available/qftcourse
-ln -sf /etc/nginx/sites-available/qftcourse /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/default
-nginx -t
-systemctl restart nginx
+sudo cp nginx.conf /etc/nginx/sites-available/qftcourse
+sudo ln -sf /etc/nginx/sites-available/qftcourse /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl restart nginx
 
 # 8. 设置防火墙（如果启用了 ufw）
 sudo ufw allow 'Nginx Full'
@@ -75,7 +75,7 @@ chmod +x deploy.sh
 只需两步：
 
 ```bash
-cd /root/qftcourse
+cd ~/qftcourse
 git pull
 ./deploy.sh
 ```
