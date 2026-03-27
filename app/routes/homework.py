@@ -85,7 +85,8 @@ def submit(assignment_id):
         ch_num = assignment.chapter.number
         today = date.today().strftime('%Y%m%d')
         ext = os.path.splitext(filename)[1]
-        safe_name = f"{re.sub(r'[^\w\u4e00-\u9fff]', '_', current_user.name)}_第{ch_num}章_{today}{ext}"
+        pattern = r'[^\w\u4e00-\u9fff]'
+        safe_name = f"{re.sub(pattern, '_', current_user.name)}_第{ch_num}章_{today}{ext}"
         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], safe_name)
         file.save(filepath)
 
