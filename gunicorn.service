@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/qftcourse
 Environment="PATH=/home/ubuntu/qftcourse/venv/bin"
-ExecStart=/home/ubuntu/qftcourse/venv/bin/gunicorn --workers 3 --bind unix:qftcourse.sock -m 007 wsgi:app
+ExecStart=/home/ubuntu/qftcourse/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 wsgi:app
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 
