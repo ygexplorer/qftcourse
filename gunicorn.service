@@ -3,11 +3,11 @@ Description=Gunicorn instance for QFT Course
 After=network.target
 
 [Service]
-User=root
+User=ubuntu
 Group=www-data
-WorkingDirectory=/root/qftcourse
-Environment="PATH=/root/qftcourse/venv/bin"
-ExecStart=/root/qftcourse/venv/bin/gunicorn --workers 3 --bind unix:qftcourse.sock -m 007 wsgi:app
+WorkingDirectory=/home/ubuntu/qftcourse
+Environment="PATH=/home/ubuntu/qftcourse/venv/bin"
+ExecStart=/home/ubuntu/qftcourse/venv/bin/gunicorn --workers 3 --bind unix:qftcourse.sock -m 007 wsgi:app
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 
