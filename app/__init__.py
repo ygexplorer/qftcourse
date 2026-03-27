@@ -15,9 +15,13 @@ def create_app():
 
     # 配置
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gauge_theory.db'
+    # 使用绝对路径确保在任何目录下都能找到数据库
+    basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    instance_path = os.path.join(basedir, 'instance')
+    os.makedirs(instance_path, exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_path, "gauge_theory.db")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
+    app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB 上传限制
     app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
 
