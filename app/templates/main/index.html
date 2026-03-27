@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}首页{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+  <canvas class="hero-canvas" id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <h1 class="hero-title">规范场论</h1>
+    <div class="hero-title-en">GAUGE THEORY</div>
+    <p class="hero-desc">
+      从经典场论到量子规范场，系统学习杨-米尔斯理论、费曼图计算、重整化群与反常，深入理解粒子物理的数学基础。
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('course.index') }}" class="hero-btn hero-btn-primary">📖 开始学习</a>
+      <a href="{{ url_for('main.announcement_list') }}" class="hero-btn hero-btn-ghost">📢 查看公告</a>
+    </div>
+  </div>
+</section>
+
+{% if announcements %}
+<div class="page-header flex-between">
+  <h2 style="font-size:1.3em;">📢 最新公告</h2>
+  <a href="{{ url_for('main.announcement_list') }}" class="btn btn-xs btn-outline">查看全部</a>
+</div>
+
+<div class="mb-4">
+  {% for ann in announcements %}
+  <div class="card mb-3" style="padding:16px 20px;">
+    <div class="flex-between" style="margin-bottom:6px;">
+      <div class="flex-gap">
+        {% if ann.is_pinned %}
+          <span class="badge badge-danger" style="font-size:0.7em;">置顶</span>
+        {% endif %}
+        <a href="{{ url_for('main.announcement_detail', announcement_id=ann.id) }}" style="font-weight:600; font-size:0.95em;">{{ ann.title }}</a>
+      </div>
+      <span class="text-muted" style="font-size:0.8em; white-space:nowrap;">{{ ann.created_at | datetime_format('%m-%d') }}</span>
+    </div>
+    <div style="font-size:0.88em; color:var(--text-light); line-height:1.6;">
+      {{ ann.content[:120] }}{% if ann.content|length > 120 %}...{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="page-header">
+  <h2 style="font-size:1.3em;">📖 课程章节</h2>
+</div>
+
+<div class="grid-2">
+  {% for chapter in chapters %}
+  <a href="{{ url_for('course.chapter', slug=chapter.slug) }}" class="chapter-card">
+    <div class="chapter-num">{{ chapter.number }}</div>
+    <div class="chapter-info">
+      <h3>{{ chapter.title }}</h3>
+      <p>第 {{ chapter.number }} 章</p>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% if not current_user.is_authenticated %}
+<div class="card mt-4 text-center">
+  <p class="text-muted">登录后可以提交作业和查看成绩</p>
+  <div class="flex-gap" style="justify-content:center; margin-top:12px;">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline">登录</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">注册</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Hero 粒子动画 -->
+<script>
+(function() {
+  var canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var mouseX = -1000, mouseY = -1000;
+
+  function resize() {
+    var hero = canvas.parentElement;
+    canvas.width = hero.offsetWidth;
+    canvas.height = hero.offsetHeight;
+  }
+
+  // 检查 prefers-reduced-motion
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function Particle() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * 0.4;
+    this.vy = (Math.random() - 0.5) * 0.4;
+    this.r = Math.random() * 2 + 0.5;
+  }
+
+  function init() {
+    resize();
+    particles = [];
+    var count = Math.min(Math.floor(canvas.width * canvas.height / 12000), 80);
+    for (var i = 0; i < count; i++) {
+      particles.push(new Particle());
+    }
+  }
+
+  function animate() {
+    if (prefersReducedMotion) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var color = isDark ? '94, 234, 212' : '66, 185, 131';
+    var lineColor = isDark ? '94, 234, 212' : '66, 185, 131';
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + color + ', 0.6)';
+      ctx.fill();
+
+      for (var j = i + 1; j < particles.length; j++) {
+        var p2 = particles[j];
+        var dx = p.x - p2.x;
+        var dy = p.y - p2.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = 'rgba(' + lineColor + ',' + (0.15 * (1 - dist / 120)) + ')';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  init();
+  animate();
+  window.addEventListener('resize', init);
+})();
+</script>
+{% endblock %}

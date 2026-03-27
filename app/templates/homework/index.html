@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "macros.html" import filesize %}
+
+{% block title %}作业{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>📋 作业</h1>
+    <p class="text-muted">按章节查看和提交作业</p>
+  </div>
+</div>
+
+{% for chapter in chapters %}
+  {% if chapter.assignments.all() %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <span style="color:var(--primary);">第 {{ chapter.number }} 章</span>
+        {{ chapter.title }}
+      </div>
+      {% for assignment in chapter.assignments.all() %}
+        <div style="padding:12px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:500;">{{ assignment.title }}</div>
+            <div class="text-muted" style="font-size:0.85em;">
+              {% if assignment.due_date %}
+                {% set is_overdue = assignment.due_date < now() %}
+                {% set days_left = (assignment.due_date - now()).days %}
+                {% set is_urgent = not is_overdue and days_left <= 3 and days_left >= 0 %}
+                截止日期：<span style="{% if is_overdue %}color:var(--danger); font-weight:600;{% elif is_urgent %}color:var(--warning); font-weight:600;{% endif %}">{{ assignment.due_date | datetime_format('%Y-%m-%d') }}
+                {% if is_overdue %}（已截止）
+                {% elif days_left == 0 %}（今天截止）
+                {% elif days_left == 1 %}（明天截止）
+                {% elif is_urgent %}（{{ days_left }}天后截止）
+                {% else %}（{{ days_left }}天后截止）
+                {% endif %}</span>
+              {% else %}
+                无截止日期
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex-gap">
+            {% set is_overdue = assignment.due_date and assignment.due_date < now() %}
+            {% if is_overdue %}
+              <span class="badge badge-danger">已截止</span>
+            {% elif assignment.due_date %}
+              {% set days_left = (assignment.due_date - now()).days %}
+              {% if days_left <= 3 and days_left >= 0 %}
+                <span class="badge badge-warning">⏰ 紧急</span>
+              {% endif %}
+            {% endif %}
+            {% if assignment.id in my_submissions %}
+              <span class="badge badge-success">已提交</span>
+              {% if my_submissions[assignment.id].score is not none %}
+                <span class="badge badge-info">得分：{{ my_submissions[assignment.id].score }}</span>
+              {% endif %}
+              {% if not is_overdue %}
+                <a href="{{ url_for('homework.submit', assignment_id=assignment.id) }}" class="btn btn-xs btn-outline">重新提交</a>
+              {% endif %}
+            {% elif not is_overdue %}
+              <a href="{{ url_for('homework.submit', assignment_id=assignment.id) }}" class="btn btn-sm btn-primary">提交作业</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endfor %}
+
+{% set has_assignments = namespace(has=False) %}
+{% for ch in chapters %}
+  {% if ch.assignments.first() %}
+    {% set has_assignments.has = True %}
+  {% endif %}
+{% endfor %}
+
+{% if not has_assignments.has %}
+<div class="empty-state">
+  <div class="empty-icon">📭</div>
+  <h3>暂无作业</h3>
+  <p>教师尚未发布作业，请稍后再查看</p>
+</div>
+{% endif %}
+
+{% endblock %}

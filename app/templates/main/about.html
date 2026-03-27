@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}关于{% endblock %}
+
+{% block content %}
+<div class="chapter-content">
+  <h1 style="margin-top:0;">关于本课程</h1>
+
+  <h2>课程信息</h2>
+  <div class="card mb-4" style="padding:20px;">
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">课程名称</div>
+        <div style="font-weight:600;">规范场论</div>
+      </div>
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">授课教师</div>
+        <div style="font-weight:600;">杨刚</div>
+      </div>
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">面向对象</div>
+        <div style="font-weight:600;">研究生一年级</div>
+      </div>
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">课程性质</div>
+        <div style="font-weight:600;">理论物理专业核心课</div>
+      </div>
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">参考教材</div>
+        <div style="font-weight:600;">Schwartz / Peskin / Weinberg</div>
+      </div>
+      <div>
+        <div style="font-size:0.85em; color:var(--text-light);">课程章节</div>
+        <div style="font-weight:600;">共 14 章</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>课程简介</h2>
+  <p>规范场论是现代理论物理的核心框架，从量子电动力学（QED）到量子色动力学（QCD）和电弱统一理论，规范对称性贯穿始终。本课程旨在系统介绍规范场论的基本概念、数学工具和计算方法。</p>
+
+  <h2>课程大纲</h2>
+  <ol>
+    <li>基础回顾</li>
+    <li>路径积分量子化</li>
+    <li>规范场基础</li>
+    <li>规范场的量子化</li>
+    <li>费曼图计算基础</li>
+    <li>圈图计算简介</li>
+    <li>场论中的对称性</li>
+    <li>对称性的破缺 — 概述</li>
+    <li>对称性的自发破缺</li>
+    <li>重整化</li>
+    <li>重整化群</li>
+    <li>反常</li>
+    <li>规范-引力之联系</li>
+    <li>S矩阵方法</li>
+  </ol>
+
+  <h2>先修要求</h2>
+  <ul>
+    <li>经典电动力学与狭义相对论</li>
+    <li>量子力学（含正则量子化）</li>
+    <li>初级量子场论（自由场的量子化、费曼图基础）</li>
+    <li>群论基础（李群与李代数）</li>
+  </ul>
+
+  <h2>关于本平台</h2>
+  <p>本网站用于课程内容发布、作业提交与成绩管理。如有任何问题，请联系授课教师。</p>
+</div>
+
+{% endblock %}

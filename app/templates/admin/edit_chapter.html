@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}编辑章节{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>✏️ 编辑章节</h1>
+  <p class="text-muted">第 {{ chapter.number }} 章：{{ chapter.title }}</p>
+</div>
+
+<div class="card">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label>章节标题</label>
+      <input type="text" name="title" value="{{ chapter.title }}" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+      <label>
+        章节内容
+        <span class="text-muted" style="font-weight:400;">
+          （支持 Markdown 格式和 LaTeX 公式，使用 $$...$$ 包裹行间公式）
+        </span>
+      </label>
+      <textarea name="content" class="form-control" style="min-height:500px;">{{ chapter.content or '' }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" name="is_visible" {% if chapter.is_visible %}checked{% endif %}>
+        对学生可见
+      </label>
+    </div>
+
+    <div class="flex-gap">
+      <button type="submit" class="btn btn-primary">保存修改</button>
+      <a href="{{ url_for('admin.chapters') }}" class="btn btn-outline">取消</a>
+      <a href="{{ url_for('course.chapter', slug=chapter.slug) }}" class="btn btn-outline" target="_blank">预览</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

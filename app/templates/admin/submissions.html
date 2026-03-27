@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% from "macros.html" import filesize %}
+
+{% block title %}作业提交{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>📥 作业提交</h1>
+    <p class="text-muted">查看和管理学生提交的作业</p>
+  </div>
+</div>
+
+<!-- 筛选栏 -->
+<form method="GET" class="card mb-4" style="padding:16px;">
+  <div class="form-row" style="align-items:end;">
+    <div class="form-group" style="margin-bottom:0;">
+      <label>按章节筛选</label>
+      <select name="chapter" class="form-control" onchange="this.form.submit()">
+        <option value="">全部章节</option>
+        {% for ch in chapters %}
+          <option value="{{ ch.id }}" {% if selected_chapter == ch.id %}selected{% endif %}>
+            第 {{ ch.number }} 章：{{ ch.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if selected_chapter %}
+    <div class="form-group" style="margin-bottom:0;">
+      <label>按作业筛选</label>
+      <select name="assignment" class="form-control" onchange="this.form.submit()">
+        <option value="">全部作业</option>
+        {% for ch in chapters %}
+          {% if ch.id == selected_chapter %}
+            {% for a in ch.assignments.all() %}
+              <option value="{{ a.id }}" {% if selected_assignment == a.id %}selected{% endif %}>
+                {{ a.title }}
+              </option>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <a href="{{ url_for('admin.submissions') }}" class="btn btn-outline btn-sm">清除筛选</a>
+  </div>
+</form>
+
+<!-- 提交列表 -->
+{% if submissions %}
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>学生</th>
+        <th>学号</th>
+        <th>章节</th>
+        <th>作业</th>
+        <th>文件</th>
+        <th>提交时间</th>
+        <th>得分</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in submissions %}
+      <tr>
+        <td><strong>{{ sub.student.name }}</strong></td>
+        <td class="text-muted">{{ sub.student.student_id }}</td>
+        <td>第 {{ sub.assignment.chapter.number }} 章</td>
+        <td>{{ sub.assignment.title }}</td>
+        <td>
+          <span style="font-size:0.85em;">{{ sub.filename }}</span>
+          {% if sub.file_size %}
+            <div class="text-muted" style="font-size:0.8em;">{{ filesize(sub.file_size) }}</div>
+          {% endif %}
+        </td>
+        <td class="text-muted" style="font-size:0.85em; white-space:nowrap;">
+          {{ sub.submitted_at | datetime_format('%m-%d %H:%M') }}
+        </td>
+        <td>
+          {% if sub.score is not none %}
+            <span class="badge badge-info">{{ sub.score }}</span>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="flex-gap">
+            <form method="POST" action="{{ url_for('admin.score_submission', submission_id=sub.id) }}" style="display:flex; gap:4px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="number" name="score" step="0.1" min="0" max="100"
+                     placeholder="分数" value="{{ sub.score if sub.score is not none else '' }}"
+                     style="width:60px; padding:4px 6px; border:1px solid var(--border); border-radius:4px; font-size:0.85em;">
+              <button type="submit" class="btn btn-xs btn-primary">✓</button>
+            </form>
+            <a href="{{ url_for('admin.download', submission_id=sub.id) }}" class="btn btn-xs btn-outline">下载</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📭</div>
+  <h3>暂无提交</h3>
+  <p>学生尚未提交作业</p>
+</div>
+{% endif %}
+
+{% endblock %}

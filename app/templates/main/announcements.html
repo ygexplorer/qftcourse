@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}课程公告{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📢 课程公告</h1>
+  <p class="text-muted">教师发布的课程通知</p>
+</div>
+
+{% if announcements %}
+{% for ann in announcements %}
+<div class="card mb-3" style="padding:20px;">
+  <div class="flex-between" style="margin-bottom:8px;">
+    <div class="flex-gap">
+      {% if ann.is_pinned %}
+        <span class="badge badge-danger">📌 置顶</span>
+      {% endif %}
+      <h3 style="font-size:1.1em; font-weight:600;">
+        <a href="{{ url_for('main.announcement_detail', announcement_id=ann.id) }}">{{ ann.title }}</a>
+      </h3>
+    </div>
+    <span class="text-muted" style="font-size:0.82em; white-space:nowrap;">
+      {{ ann.created_at | datetime_format('%Y-%m-%d %H:%M') }}
+    </span>
+  </div>
+  <div style="font-size:0.9em; color:var(--text-light); line-height:1.6;">
+    {{ ann.content[:200] }}{% if ann.content|length > 200 %}...
+      <a href="{{ url_for('main.announcement_detail', announcement_id=ann.id) }}" style="color:var(--primary);"> 查看全文</a>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📢</div>
+  <h3>暂无公告</h3>
+  <p>教师尚未发布公告</p>
+</div>
+{% endif %}
+
+{% endblock %}

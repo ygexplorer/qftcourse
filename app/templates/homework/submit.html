@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}提交作业{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📤 提交作业</h1>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <div class="card-header">
+    第 {{ assignment.chapter.number }} 章：{{ assignment.chapter.title }}
+  </div>
+
+  <p style="margin-bottom:8px;">{{ assignment.title }}</p>
+  {% if assignment.description %}
+    <p class="text-muted" style="font-size:0.9em; margin-bottom:16px;">{{ assignment.description }}</p>
+  {% endif %}
+  {% if assignment.due_date %}
+    <p class="text-muted" style="font-size:0.85em;">
+      截止日期：{{ assignment.due_date | datetime_format('%Y-%m-%d') }}
+    </p>
+  {% endif %}
+
+  {% if existing %}
+    <div style="background:var(--success-light); padding:12px 16px; border-radius:var(--radius-sm); margin:16px 0;">
+      <span class="badge badge-success">已提交</span>
+      <span style="font-size:0.9em; margin-left:8px;">
+        {{ existing.filename }}
+        <span class="text-muted">（{{ existing.submitted_at | datetime_format }}）</span>
+      </span>
+    </div>
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" style="margin-top:20px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label>选择 PDF 文件</label>
+      <input type="file" name="file" accept=".pdf" class="form-control" required>
+      <div class="form-hint">仅支持 PDF 格式，最大 50MB</div>
+    </div>
+
+    <div class="flex-gap">
+      <button type="submit" class="btn btn-primary">
+        {% if existing %}重新提交{% else %}提交作业{% endif %}
+      </button>
+      <a href="{{ url_for('homework.index') }}" class="btn btn-outline">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

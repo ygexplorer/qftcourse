@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "macros.html" import filesize %}
+
+{% block title %}管理后台{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📊 管理后台</h1>
+  <p class="text-muted">课程数据总览</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-label">注册学生</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_chapters }}</div>
+    <div class="stat-label">课程章节</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_submissions }}</div>
+    <div class="stat-label">作业提交</div>
+  </div>
+</div>
+
+<div class="grid-2" style="grid-template-columns: 1fr 1fr;">
+  <div class="card">
+    <div class="card-header">⚡ 快捷操作</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <a href="{{ url_for('admin.submissions') }}" class="btn btn-outline">📥 查看作业提交</a>
+      <a href="{{ url_for('admin.assignments') }}" class="btn btn-outline">📝 管理作业发布</a>
+      <a href="{{ url_for('admin.grades') }}" class="btn btn-outline">📈 成绩管理</a>
+      <a href="{{ url_for('admin.announcements') }}" class="btn btn-outline">📢 公告管理</a>
+      {% if current_user.is_teacher() %}
+      <a href="{{ url_for('admin.students') }}" class="btn btn-outline">👥 学生管理</a>
+      <a href="{{ url_for('admin.chapters') }}" class="btn btn-outline">📖 课程内容管理</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">🕐 最近提交</div>
+    {% if recent_submissions %}
+      {% for sub in recent_submissions %}
+      <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:0.9em;">
+        <div class="flex-between">
+          <span><strong>{{ sub.student.name }}</strong> · {{ sub.assignment.title }}</span>
+          <span class="text-muted">{{ sub.submitted_at | datetime_format('%m-%d %H:%M') }}</span>
+        </div>
+        <div class="text-muted" style="font-size:0.85em;">
+          {{ sub.filename }}
+          {% if sub.score is not none %}
+            <span class="badge badge-info">得分：{{ sub.score }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">暂无提交</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

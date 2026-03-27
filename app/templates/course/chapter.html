@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chapter.title }}{% endblock %}
+
+{% block content %}
+<!-- 阅读进度条 -->
+<div class="reading-progress" id="reading-progress"></div>
+
+<div class="sidebar-layout" id="sidebar-layout">
+  {# 全局侧边栏 #}
+  <aside class="global-sidebar" id="global-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title" style="display:flex; align-items:center; justify-content:space-between;">
+        <span>📚 讲义</span>
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="收起侧边栏" onclick="document.getElementById('sidebar-layout').classList.toggle('sidebar-collapsed')">◁</button>
+      </div>
+      <ul class="sidebar-nav">
+        {% for ch in all_chapters %}
+        <li class="sidebar-item {% if ch.id == chapter.id %}active{% endif %}">
+          {% if ch.id == chapter.id %}
+          {# 当前章节：点击标题折叠/展开子目录 #}
+          <a href="javascript:void(0)" class="sidebar-link sidebar-link-toggle" id="sidebar-ch-toggle">
+            <span class="sidebar-ch-num">Ch.{{ ch.number }}</span>
+            <span style="flex:1;">{{ ch.title }}</span>
+            <span class="sidebar-arrow" id="sidebar-arrow">▾</span>
+          </a>
+          <ul class="sidebar-sub" id="sidebar-sub-list"></ul>
+          {% else %}
+          {# 其他章节：点击跳转 #}
+          <a href="{{ url_for('course.chapter', slug=ch.slug) }}" class="sidebar-link">
+            <span class="sidebar-ch-num">Ch.{{ ch.number }}</span>
+            <span>{{ ch.title }}</span>
+          </a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </aside>
+
+  {# 侧边栏折叠按钮（移动端） #}
+  <button class="sidebar-toggle" id="sidebar-toggle" title="目录">☰</button>
+
+  {# 主内容区 #}
+  <div class="chapter-content">
+    {# 侧边栏展开浮标（收起时显示） #}
+    <button class="sidebar-expand-fab" id="sidebar-expand-fab" title="展开侧边栏" onclick="document.getElementById('sidebar-layout').classList.toggle('sidebar-collapsed')">▷ 目录</button>
+
+    <a href="{{ url_for('course.index') }}" class="text-muted" style="font-size:0.9em;">
+      ← 返回课程目录
+    </a>
+
+    <h1 style="margin-top:16px;">第 {{ chapter.number }} 章：{{ chapter.title }}</h1>
+
+    {% if chapter.content %}
+    <div class="chapter-body">
+      {{ chapter.content | safe }}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <h3>内容待完善</h3>
+      <p>本章内容正在编写中</p>
+    </div>
+    {% endif %}
+
+    <div class="chapter-navigation">
+      {% if prev_ch %}
+        <a href="{{ url_for('course.chapter', slug=prev_ch.slug) }}">
+          ← 第 {{ prev_ch.number }} 章：{{ prev_ch.title }}
+        </a>
+      {% else %}
+        <span></span>
+      {% endif %}
+
+      {% if next_ch %}
+        <a href="{{ url_for('course.chapter', slug=next_ch.slug) }}">
+          第 {{ next_ch.number }} 章：{{ next_ch.title }} →
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var sidebar = document.getElementById('global-sidebar');
+  var toggleBtn = document.getElementById('sidebar-toggle');
+  var sidebarLayout = document.getElementById('sidebar-layout');
+  var collapseBtn = document.getElementById('sidebar-collapse-btn');
+  var expandFab = document.getElementById('sidebar-expand-fab');
+  var body = document.querySelector('.chapter-body');
+  if (!body || !sidebar) return;
+
+  // ── 侧边栏折叠状态记忆（localStorage）────────────────────
+  var sidebarCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+  if (sidebarCollapsed && sidebarLayout) {
+    sidebarLayout.classList.add('sidebar-collapsed');
+  }
+
+  // 监听折叠状态变化，同步图标和 localStorage
+  if (sidebarLayout) {
+    var mo = new MutationObserver(function() {
+      var collapsed = sidebarLayout.classList.contains('sidebar-collapsed');
+      localStorage.setItem('sidebar-collapsed', collapsed);
+      if (collapseBtn) collapseBtn.textContent = collapsed ? '▷' : '◁';
+      if (collapseBtn) collapseBtn.title = collapsed ? '展开侧边栏' : '收起侧边栏';
+    });
+    mo.observe(sidebarLayout, { attributes: true, attributeFilter: ['class'] });
+    // 初始化图标
+    if (collapseBtn) collapseBtn.textContent = sidebarCollapsed ? '▷' : '◁';
+  }
+
+  // ── 阅读进度条 ─────────────────────────────────────────
+  var progressBar = document.getElementById('reading-progress');
+  if (progressBar) {
+    window.addEventListener('scroll', function() {
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    });
+  }
+
+  // ── 工具函数：生成稳定的 anchor slug ────────────────────────
+  function slugify(text) {
+    return text.trim()
+      .replace(/[^\w\u4e00-\u9fff\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .toLowerCase();
+  }
+
+  // ── 初始化：给 h2/h3 加 id，生成侧边栏子链接 ─────────────
+  function buildSubNav() {
+    var headings = body.querySelectorAll('h2, h3');
+    var subList = document.getElementById('sidebar-sub-list');
+    if (!subList || headings.length === 0) return;
+
+    // 先给所有标题加 id（如果还没有的话）
+    headings.forEach(function(h) {
+      if (!h.id) {
+        h.id = slugify(h.textContent);
+      }
+    });
+
+    // 生成侧边栏链接
+    subList.innerHTML = '';
+    headings.forEach(function(h) {
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.className = 'sidebar-sub-link';
+      a.textContent = h.textContent.trim();
+      a.dataset.targetId = h.id;  // 额外存一份，确保查找可靠
+      var indent = h.tagName === 'H2' ? 20 : 32;
+      a.style.paddingLeft = indent + 'px';
+      subList.appendChild(a);
+    });
+
+    return subList;
+  }
+
+  var subList = buildSubNav();
+
+  // ── 当前章节子目录折叠/展开 ────────────────────────────
+  var chToggle = document.getElementById('sidebar-ch-toggle');
+  var arrow = document.getElementById('sidebar-arrow');
+  var subCollapsed = false;
+
+  if (chToggle && subList) {
+    chToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      subCollapsed = !subCollapsed;
+      if (subCollapsed) {
+        subList.style.maxHeight = '0';
+        subList.style.opacity = '0';
+        subList.style.paddingTop = '0';
+        subList.style.paddingBottom = '0';
+        subList.style.overflow = 'hidden';
+        arrow.style.transform = 'rotate(-90deg)';
+        arrow.textContent = '▸';
+      } else {
+        subList.style.maxHeight = subList.scrollHeight + 'px';
+        subList.style.opacity = '1';
+        subList.style.paddingTop = '4px';
+        subList.style.paddingBottom = '8px';
+        subList.style.overflow = 'visible';
+        arrow.style.transform = 'rotate(0deg)';
+        arrow.textContent = '▾';
+      }
+    });
+  }
+
+  // ── 点击子标题平滑滚动 ─────────────────────────────────────
+  if (subList) {
+    subList.addEventListener('click', function(e) {
+      var link = e.target.closest('.sidebar-sub-link');
+      if (!link) return;
+      e.preventDefault();
+      var tid = link.dataset.targetId;
+      var target = document.getElementById(tid);
+      if (target) {
+        var y = target.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        toggleBtn.textContent = '☰';
+      }
+    });
+  }
+
+  // ── 滚动时高亮当前子标题 ─────────────────────────────────
+  var subLinks = document.querySelectorAll('.sidebar-sub-link');
+  if (subLinks.length > 0) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          subLinks.forEach(function(l) { l.classList.remove('active'); });
+          var active = document.querySelector('.sidebar-sub-link[data-target-id="' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+    body.querySelectorAll('h2, h3').forEach(function(h) { observer.observe(h); });
+  }
+
+  // ── 移动端侧边栏切换 ─────────────────────────────────────
+  toggleBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+    toggleBtn.textContent = sidebar.classList.contains('open') ? '✕' : '☰';
+  });
+})();
+</script>
+{% endblock %}

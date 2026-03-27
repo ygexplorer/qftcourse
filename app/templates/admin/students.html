@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}学生管理{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>👥 学生管理</h1>
+    <p class="text-muted">共 {{ students|length }} 名注册学生</p>
+  </div>
+  {% if current_user.is_teacher() %}
+  <a href="{{ url_for('admin.import_students') }}" class="btn btn-primary">📤 批量导入</a>
+  {% endif %}
+</div>
+
+{% if students %}
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>学号</th>
+        <th>姓名</th>
+        <th>用户名</th>
+        <th>邮箱</th>
+        <th>注册时间</th>
+        <th>作业提交数</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td class="text-muted">{{ s.student_id }}</td>
+        <td><strong>{{ s.name }}</strong></td>
+        <td>{{ s.username }}</td>
+        <td class="text-muted">{{ s.email if s.email else '-' }}</td>
+        <td class="text-muted" style="font-size:0.85em;">{{ s.created_at | datetime_format('%Y-%m-%d') }}</td>
+        <td>{{ s.submissions.count() }}</td>
+        <td>
+          {% if current_user.is_teacher() %}
+          <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.id) }}" style="display:inline;"
+                onsubmit="return confirm('确定要删除学生 {{ s.name }} 吗？所有提交和成绩将被删除。')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-xs btn-danger">删除</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">👥</div>
+  <h3>暂无学生</h3>
+  <p>等待学生注册</p>
+</div>
+{% endif %}
+
+{% endblock %}

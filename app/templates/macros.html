@@ -1,0 +1,19 @@
+{% macro render_field(field, placeholder='', class='') %}
+  <div class="form-group">
+    <label>{{ field.label.text }}</label>
+    {{ field(class="form-control " + class, placeholder=placeholder or '') }}
+    {% for error in field.errors %}
+      <div class="form-error">{{ error }}</div>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro filesize(size) %}
+  {% if size > 1048576 %}
+    {{ "%.1f"|format(size / 1048576) }} MB
+  {% elif size > 1024 %}
+    {{ "%.1f"|format(size / 1024) }} KB
+  {% else %}
+    {{ size }} B
+  {% endif %}
+{% endmacro %}

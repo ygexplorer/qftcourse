@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}章节管理{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📖 课程内容管理</h1>
+  <p class="text-muted">管理课程章节内容</p>
+</div>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>编号</th>
+        <th>标题</th>
+        <th>可见</th>
+        <th>作业数</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ch in chapters %}
+      <tr>
+        <td style="text-align:center;">
+          <span style="background:var(--primary-light); color:var(--primary); padding:2px 10px; border-radius:10px; font-weight:600;">
+            {{ ch.number }}
+          </span>
+        </td>
+        <td><strong>{{ ch.title }}</strong></td>
+        <td>
+          {% if ch.is_visible %}
+            <span class="badge badge-success">可见</span>
+          {% else %}
+            <span class="badge badge-warning">隐藏</span>
+          {% endif %}
+        </td>
+        <td>{{ ch.assignments.count() }}</td>
+        <td>
+          <div class="flex-gap">
+            <a href="{{ url_for('course.chapter', slug=ch.slug) }}" class="btn btn-xs btn-outline" target="_blank">预览</a>
+            <a href="{{ url_for('admin.edit_chapter', chapter_id=ch.id) }}" class="btn btn-xs btn-primary">编辑</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

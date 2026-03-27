@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}导入学生{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📤 批量导入学生</h1>
+  <p class="text-muted">从 CSV 或 Excel 文件导入学生名单</p>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label>选择文件</label>
+      <input type="file" name="file" accept=".csv,.xlsx,.xls" class="form-control" required>
+      <div class="form-hint">支持 CSV（UTF-8 编码）、Excel（.xlsx）和旧版 Excel（.xls）格式</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">开始导入</button>
+    <a href="{{ url_for('admin.students') }}" class="btn btn-outline">取消</a>
+  </form>
+</div>
+
+<div class="card mt-4" style="max-width:700px;">
+  <div class="card-header">📋 文件格式要求</div>
+  <p>文件第一行为表头，系统会自动识别以下列名（支持多种命名方式）：</p>
+  <div class="table-wrapper" style="margin-top:12px;">
+    <table>
+      <thead>
+        <tr>
+          <th>字段</th>
+          <th>是否必须</th>
+          <th>支持的列名</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>学号</code></td>
+          <td><span class="badge badge-danger">必须</span></td>
+          <td>学号、student_id、编号、id</td>
+        </tr>
+        <tr>
+          <td><code>姓名</code></td>
+          <td><span class="badge badge-danger">必须</span></td>
+          <td>姓名、name、学生姓名、名字</td>
+        </tr>
+        <tr>
+          <td><code>用户名</code></td>
+          <td><span class="badge badge-warning">选填</span></td>
+          <td>用户名、username、账号（默认使用学号）</td>
+        </tr>
+        <tr>
+          <td><code>邮箱</code></td>
+          <td><span class="badge badge-success">选填</span></td>
+          <td>邮箱、email、电子邮箱</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="text-muted" style="margin-top:12px; font-size:0.85em;">
+    <strong>提示：</strong>文件中的多余列（如专业、培养单位、序号等）会被自动忽略，不影响导入。
+  </p>
+
+  <div style="margin-top:16px;">
+    <h3 style="font-size:1em; margin-bottom:8px;">CSV 示例</h3>
+    <pre style="background:#f3f4f6; padding:12px; border-radius:6px; font-size:0.85em; overflow-x:auto;">学号,姓名,用户名,邮箱
+20240001,张三,20240001,zhangsan@example.com
+20240002,李四,20240002,lisi@example.com</pre>
+  </div>
+
+  <p class="text-muted" style="margin-top:12px; font-size:0.85em;">
+    <strong>注意：</strong>已存在的用户名或学号会自动跳过。默认密码为学号后6位。
+  </p>
+</div>
+
+{% endblock %}

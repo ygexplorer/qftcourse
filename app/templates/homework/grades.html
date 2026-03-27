@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}我的成绩{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>📊 我的成绩</h1>
+    <p class="text-muted">查看各章节作业和成绩</p>
+  </div>
+</div>
+
+{% if chapters %}
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>章节</th>
+        <th>作业状态</th>
+        <th>得分</th>
+        <th>教师评语</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set total_score = 0 %}
+      {% set graded_count = 0 %}
+      {% for ch in chapters %}
+      {% set g = grade_map.get(ch.id) %}
+      {% set s = submission_map.get(ch.id) %}
+      {% set final_score = g.score if g and g.score is not none else (s.score if s and s.score is not none else none) %}
+      <tr>
+        <td>
+          <a href="{{ url_for('course.chapter', slug=ch.slug) }}" style="font-weight:500;">
+            第 {{ ch.number }} 章：{{ ch.title }}
+          </a>
+        </td>
+        <td>
+          {% if s %}
+            <span class="badge badge-success">已提交</span>
+            <span class="text-muted" style="font-size:0.82em;">
+              {{ s.submitted_at | datetime_format('%m-%d %H:%M') }}
+            </span>
+          {% else %}
+            <span class="text-muted">未提交</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if final_score is not none %}
+            {% if final_score >= 60 %}
+              <span class="badge badge-success" style="font-size:0.9em;">{{ final_score }}</span>
+            {% else %}
+              <span class="badge badge-danger" style="font-size:0.9em;">{{ final_score }}</span>
+            {% endif %}
+            {% set total_score = total_score + final_score %}
+            {% set graded_count = graded_count + 1 %}
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+        <td style="font-size:0.9em;">
+          {% if g and g.comment %}
+            {{ g.comment }}
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card mt-4" style="max-width:400px; padding:20px; text-align:center;">
+  <h3 style="font-size:1.1em; margin-bottom:12px;">成绩统计</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+    <div>
+      <div style="font-size:0.85em; color:var(--text-light);">已提交作业</div>
+      <div style="font-size:1.5em; font-weight:700; color:var(--primary);">{{ submission_map | length }} / {{ chapters | length }}</div>
+    </div>
+    <div>
+      <div style="font-size:0.85em; color:var(--text-light);">已评分</div>
+      <div style="font-size:1.5em; font-weight:700; color:var(--info);">{{ graded_count }} / {{ chapters | length }}</div>
+    </div>
+  </div>
+  {% if graded_count > 0 %}
+  <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+    <div style="font-size:0.85em; color:var(--text-light);">平均分</div>
+    <div style="font-size:2em; font-weight:700; color:var(--primary);">{{ (total_score / graded_count) | round(1) }}</div>
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📊</div>
+  <h3>暂无成绩数据</h3>
+  <p>课程尚未发布</p>
+</div>
+{% endif %}
+
+{% endblock %}

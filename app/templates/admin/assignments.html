@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}作业管理{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>📝 作业管理</h1>
+    <p class="text-muted">发布和管理各章节作业</p>
+  </div>
+</div>
+
+{% for chapter in chapters %}
+<div class="card mb-4">
+  <div class="card-header flex-between">
+    <div>
+      <span style="color:var(--primary);">第 {{ chapter.number }} 章</span>
+      {{ chapter.title }}
+    </div>
+    {% if current_user.is_teacher() %}
+      <a href="{{ url_for('admin.create_assignment', chapter_id=chapter.id) }}" class="btn btn-sm btn-primary">+ 发布作业</a>
+    {% endif %}
+  </div>
+
+  {% if chapter.assignments.all() %}
+    <table>
+      <thead>
+        <tr>
+          <th>作业标题</th>
+          <th>截止日期</th>
+          <th>提交数</th>
+          <th>已评分</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in chapter.assignments.all() %}
+        <tr>
+          <td><strong>{{ a.title }}</strong>
+            {% if a.description %}
+              <div class="text-muted" style="font-size:0.82em;">{{ a.description[:50] }}</div>
+            {% endif %}
+          </td>
+          <td class="text-muted">
+            {% if a.due_date %}{{ a.due_date | datetime_format('%Y-%m-%d') }}{% else %}-{% endif %}
+          </td>
+          <td>{{ a.submissions.count() }}</td>
+          <td>{{ a.submissions.filter(Submission.score.isnot(None)).count() }}</td>
+          <td>
+            <div class="flex-gap">
+              <a href="{{ url_for('admin.submissions', assignment=a.id) }}" class="btn btn-xs btn-outline">查看提交</a>
+              {% if current_user.is_teacher() %}
+              <form method="POST" action="{{ url_for('admin.delete_assignment', assignment_id=a.id) }}" style="display:inline;"
+                    onsubmit="return confirm('确定要删除这个作业吗？所有关联的提交也将被删除。')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-xs btn-danger">删除</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted" style="padding:8px 0;">尚未发布作业</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}

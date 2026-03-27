@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}公告管理{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+  <div>
+    <h1>📢 公告管理</h1>
+    <p class="text-muted">发布和管理课程通知</p>
+  </div>
+  {% if current_user.is_teacher() %}
+  <a href="{{ url_for('admin.create_announcement') }}" class="btn btn-primary">➕ 发布公告</a>
+  {% endif %}
+</div>
+
+{% if announcements %}
+<div class="flex-gap mb-4" style="flex-wrap:wrap;">
+  <span class="badge badge-info">{{ announcements|length }} 条公告</span>
+</div>
+
+{% for ann in announcements %}
+<div class="card mb-3" style="padding:20px;">
+  <div class="flex-between" style="margin-bottom:8px;">
+    <div class="flex-gap">
+      {% if ann.is_pinned %}
+        <span class="badge badge-danger">📌 置顶</span>
+      {% endif %}
+      {% if not ann.is_active %}
+        <span class="badge badge-warning">已隐藏</span>
+      {% endif %}
+      <h3 style="font-size:1.1em; font-weight:600;">{{ ann.title }}</h3>
+    </div>
+    <span class="text-muted" style="font-size:0.82em; white-space:nowrap;">
+      {{ ann.created_at | datetime_format('%Y-%m-%d %H:%M') }}
+    </span>
+  </div>
+  <div style="font-size:0.9em; color:var(--text-light); margin-bottom:12px; line-height:1.6;">
+    {{ ann.content[:150] }}{% if ann.content|length > 150 %}...{% endif %}
+  </div>
+  <div class="flex-gap">
+    {% if current_user.is_teacher() %}
+    <a href="{{ url_for('admin.edit_announcement', announcement_id=ann.id) }}" class="btn btn-xs btn-outline">编辑</a>
+    <form method="POST" action="{{ url_for('admin.toggle_announcement', announcement_id=ann.id) }}" style="display:inline;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-xs btn-outline">{{ '隐藏' if ann.is_active else '显示' }}</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.delete_announcement', announcement_id=ann.id) }}"
+          style="display:inline;" onsubmit="return confirm('确定删除该公告吗？');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-xs btn-danger">删除</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📢</div>
+  <h3>暂无公告</h3>
+  <p>点击上方按钮发布第一条公告</p>
+</div>
+{% endif %}
+
+{% endblock %}

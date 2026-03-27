@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}课程内容{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📖 课程内容</h1>
+  <p>共 {{ chapters|length }} 章，涵盖规范场论的核心内容</p>
+</div>
+
+<div class="grid-2">
+  {% for chapter in chapters %}
+  <a href="{{ url_for('course.chapter', slug=chapter.slug) }}" class="chapter-card">
+    <div class="chapter-num">{{ chapter.number }}</div>
+    <div class="chapter-info">
+      <h3>{{ chapter.title }}</h3>
+      <p>第 {{ chapter.number }} 章</p>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

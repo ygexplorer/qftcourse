@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}发布作业{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📝 发布作业</h1>
+  <p class="text-muted">第 {{ chapter.number }} 章：{{ chapter.title }}</p>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label>作业标题</label>
+      <input type="text" name="title" value="课后作业" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+      <label>作业说明 <span class="text-muted" style="font-weight:400;">（选填）</span></label>
+      <textarea name="description" class="form-control" style="min-height:100px;"
+                placeholder="例如：完成教材第X页习题1-5"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>截止日期 <span class="text-muted" style="font-weight:400;">（选填）</span></label>
+      <input type="date" name="due_date" class="form-control">
+    </div>
+
+    <div class="flex-gap">
+      <button type="submit" class="btn btn-primary">发布</button>
+      <a href="{{ url_for('admin.assignments') }}" class="btn btn-outline">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
