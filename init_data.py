@@ -5,7 +5,8 @@ import os
 import sys
 
 # 将项目根目录加入路径
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, BASE_DIR)
 
 from app import create_app, db
 from app.models.chapter import Chapter
