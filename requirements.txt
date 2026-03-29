@@ -16,6 +16,10 @@ Markdown==3.10.2
 # 环境变量管理（从 .env 文件读取）
 python-dotenv==1.2.2
 
+# Excel 文件读取（学生批量导入）
+pandas>=2.0
+openpyxl>=3.1
+
 # 生产数据库驱动（PostgreSQL）
 # 本地开发用 SQLite，不需要此包
 # 部署到腾讯云时取消下行注释：
