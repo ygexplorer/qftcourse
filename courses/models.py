@@ -72,6 +72,23 @@ def chapter_lecture_path(instance, filename):
 class Chapter(TimeStampedModel):
     """课程章节"""
 
+    GROUP_CHOICES = [
+        ('review',     '1 基础回顾'),
+        ('pathint',    '2 路径积分量子化'),
+        ('gauge',     '3 经典规范场'),
+        ('quantize',  '4 规范场量子化'),
+        ('feynman',   '5 费曼图计算基础'),
+        ('loop',      '6 圈图计算简介'),
+        ('sym',       '7 场论中的对称性'),
+        ('symbrk',    '8 对称性破缺总述'),
+        ('ssb',       '9 对称性的自发破缺'),
+        ('renorm',    '10 重整化'),
+        ('rger',      '11 重整化群'),
+        ('anomaly',   '12 反常'),
+        ('grav',      '13 规范-引力之联系'),
+        ('smatrix',   '14 S矩阵在壳性方法'),
+    ]
+
     semester = models.ForeignKey(
         Semester, on_delete=models.CASCADE,
         verbose_name='所属学期', related_name='chapters'
@@ -83,6 +100,11 @@ class Chapter(TimeStampedModel):
     order_index = models.IntegerField('排序序号', default=0)
     title = models.CharField('章节标题', max_length=200)
     slug = models.SlugField('URL 标识', max_length=100, blank=True, default='')
+    group = models.CharField(
+        '知识图谱分组', max_length=20, choices=GROUP_CHOICES,
+        blank=True, default='',
+        help_text='用于首页知识图谱分组，不填则不显示在图谱中'
+    )
     content = models.TextField('Markdown 内容', blank=True, default='')
     is_published = models.BooleanField('已发布', default=False)
     lecture_pdf = models.FileField(

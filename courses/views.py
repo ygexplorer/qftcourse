@@ -24,9 +24,60 @@ def home(request):
     """课程公开首页"""
     current = Semester.objects.filter(is_current=True).first()
     semesters = Semester.objects.all()
+
+    # 知识图谱：按分组展示章节（仅已发布 + 教师可看全部）
+    if request.user.is_authenticated and getattr(request.user, 'is_teacher', False):
+        chapters_qs = Chapter.objects.filter(semester=current).exclude(group='')
+    else:
+        chapters_qs = Chapter.objects.filter(semester=current, is_published=True).exclude(group='')
+
+    # 按 group 分组
+    from collections import defaultdict
+    chapters_by_group = defaultdict(list)
+    for ch in chapters_qs:
+        chapters_by_group[ch.group].append(ch)
+
+    # 图谱节点定义（14个，对应讲义14个主干章节）
+    KNOWLEDGE_GROUPS = [
+        # 第1行（1-6）
+        {'id': 'review',   'label': '基础回顾',        'row': 1, 'num': 1, 'color': '#475569', 'glow': '#64748b',
+         'desc': '经典场论 · 正则量子化 · SD方程'},
+        {'id': 'pathint',  'label': '路径积分量子化',  'row': 1, 'num': 2, 'color': '#3b82f6', 'glow': '#60a5fa',
+         'desc': '点粒子 · 标量场'},
+        {'id': 'gauge',    'label': '经典规范场',      'row': 1, 'num': 3, 'color': '#8b5cf6', 'glow': '#a78bfa',
+         'desc': '规范变换 · 规范不变量'},
+        {'id': 'quantize', 'label': '规范场量子化',    'row': 1, 'num': 4, 'color': '#ec4899', 'glow': '#f472b6',
+         'desc': 'Faddeev-Popov · BRST'},
+        {'id': 'feynman',  'label': '费曼图计算基础',  'row': 1, 'num': 5, 'color': '#f97316', 'glow': '#fb923c',
+         'desc': '树图 · 散射振幅'},
+        {'id': 'loop',     'label': '圈图计算简介',    'row': 1, 'num': 6, 'color': '#ef4444', 'glow': '#f87171',
+         'desc': '积分和发散'},
+        # 第2行（7-9）
+        {'id': 'sym',      'label': '场论中的对称性',  'row': 2, 'num': 7, 'color': '#f59e0b', 'glow': '#fbbf24',
+         'desc': 'Noether 定理'},
+        {'id': 'symbrk',   'label': '对称性破缺总述',  'row': 2, 'num': 8, 'color': '#eab308', 'glow': '#facc15',
+         'desc': '自发破缺和量子破缺'},
+        {'id': 'ssb',      'label': '对称性的自发破缺','row': 2, 'num': 9, 'color': '#d97706', 'glow': '#fbbf24',
+         'desc': 'Goldstone 和 Higgs'},
+        # 第3行（10-12）
+        {'id': 'renorm',   'label': '重整化',          'row': 3, 'num': 10, 'color': '#10b981', 'glow': '#34d399',
+         'desc': '正规化 · 抵消项'},
+        {'id': 'rger',     'label': '重整化群',        'row': 3, 'num': 11, 'color': '#14b8a6', 'glow': '#2dd4bf',
+         'desc': 'RG 方程 · 标度不变'},
+        {'id': 'anomaly',  'label': '反常',            'row': 3, 'num': 12, 'color': '#06b6d4', 'glow': '#22d3ee',
+         'desc': 'ABJ 反常 · 规范反常'},
+        # 第4行（13-14）
+        {'id': 'grav',     'label': '规范-引力之联系', 'row': 4, 'num': 13, 'color': '#6366f1', 'glow': '#818cf8',
+         'desc': '全息对偶和平方关系'},
+        {'id': 'smatrix',  'label': 'S矩阵在壳性方法', 'row': 4, 'num': 14, 'color': '#0ea5e9', 'glow': '#38bdf8',
+         'desc': 'On-shell unitarity'},
+    ]
+
     return render(request, 'courses/home.html', {
         'semesters': semesters,
         'current_semester': current,
+        'knowledge_groups': KNOWLEDGE_GROUPS,
+        'chapters_by_group': dict(chapters_by_group),
     })
 
 

@@ -48,16 +48,16 @@ class AnnouncementAdmin(TeacherAdminMixin, admin.ModelAdmin):
 
 @admin.register(Chapter)
 class ChapterAdmin(TeacherAdminMixin, admin.ModelAdmin):
-    list_display = ('title', 'semester', 'order_index', 'is_published', 'has_lecture', 'created_at')
-    list_filter = ('semester', 'is_published')
-    list_editable = ('order_index', 'is_published')
+    list_display = ('title', 'semester', 'group', 'order_index', 'is_published', 'has_lecture', 'created_at')
+    list_filter = ('semester', 'is_published', 'group')
+    list_editable = ('order_index', 'is_published', 'group')
     search_fields = ('title',)
     prepopulated_fields = {'slug': ('title',)}
     list_per_page = 50
 
     fieldsets = (
         ('基本信息', {
-            'fields': ('semester', 'author', 'title', 'slug', 'is_published', 'order_index')
+            'fields': ('semester', 'author', 'title', 'slug', 'is_published', 'order_index', 'group')
         }),
         ('章节内容', {
             'fields': ('content', 'lecture_pdf'),
