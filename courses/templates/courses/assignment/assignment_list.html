@@ -12,8 +12,9 @@
     {% if assignments %}
     <div class="space-y-4">
         {% for hw in assignments %}
-        <a href="{% url 'courses:assignment_detail' hw.pk %}"
-           class="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition group">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition group cursor-pointer"
+             data-url="{% url 'courses:assignment_detail' hw.pk %}"
+             onclick="if(event.target.closest('a')) return; window.location=this.dataset.url">
 
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
@@ -77,7 +78,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>
-        </a>
+        </div>
         {% endfor %}
     </div>
     {% else %}

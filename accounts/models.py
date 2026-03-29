@@ -31,7 +31,7 @@ class User(AbstractUser):
     # ── 便捷属性：角色判断 ──
     @property
     def is_teacher(self):
-        return self.role == 'teacher'
+        return self.role in ('teacher', 'admin')
 
     @property
     def is_ta(self):
@@ -43,4 +43,4 @@ class User(AbstractUser):
 
     @property
     def is_teacher_or_ta(self):
-        return self.role in ('teacher', 'ta')
+        return self.role in ('teacher', 'ta', 'admin')

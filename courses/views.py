@@ -156,7 +156,7 @@ def assignment_list(request):
         user_submissions = {}
 
     # TA 和教师看提交数量
-    if user.role in ('ta', 'teacher'):
+    if user.role in ('ta', 'teacher', 'admin'):
         from django.db.models import Count
         assignments = assignments.annotate(submission_count=Count('submissions'))
 
@@ -255,7 +255,7 @@ def assignment_detail(request, pk):
         })
 
     # TA 和教师：查看所有学生提交
-    elif user.role in ('ta', 'teacher'):
+    elif user.role in ('ta', 'teacher', 'admin'):
         submissions = assignment.submissions.select_related('student').all()
         return render(request, 'courses/assignment/assignment_detail.html', {
             'assignment': assignment,
@@ -284,11 +284,11 @@ def download_submission(request, pk):
         raise Http404("无权下载此文件")
 
     # 权限检查：只有 student/ta/teacher 能下载
-    if user.role not in ('student', 'ta', 'teacher'):
+    if user.role not in ('student', 'ta', 'teacher', 'admin'):
         raise Http404
 
     # TA/教师检查：确认不是通过伪造 URL 访问未发布作业的提交
-    if user.role in ('ta', 'teacher') and not submission.assignment.is_published:
+    if user.role in ('ta', 'teacher', 'admin') and not submission.assignment.is_published:
         # 教师可以看未发布作业的提交，TA 不行
         if not getattr(user, 'is_teacher', False):
             raise Http404
@@ -367,7 +367,7 @@ def grading_workstation(request, pk):
     user = request.user
 
     # 权限：仅教师和 TA
-    if user.role not in ('teacher', 'ta'):
+    if user.role not in ('teacher', 'ta', 'admin'):
         raise Http404
 
     # TA 不能看未发布作业
@@ -411,7 +411,7 @@ def grade_submission(request, pk):
     user = request.user
 
     # 权限：仅教师和 TA
-    if user.role not in ('teacher', 'ta'):
+    if user.role not in ('teacher', 'ta', 'admin'):
         raise Http404
 
     if request.method != 'POST':

@@ -47,7 +47,9 @@
             {# 桌面端导航 #}
             <div class="hidden md:flex items-center gap-6">
                 {% if user.is_authenticated %}
-                    {% if user.is_teacher %}
+                    {% if user.is_superuser %}
+                        <a href="{% url 'accounts:teacher_dashboard' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">管理后台</a>
+                    {% elif user.is_teacher %}
                         <a href="{% url 'accounts:teacher_dashboard' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">教学管理</a>
                     {% elif user.is_ta %}
                         <a href="{% url 'accounts:ta_dashboard' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">助教工作台</a>
@@ -83,7 +85,9 @@
         <div x-show="open" @click.away="open = false" x-cloak
              class="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-3">
             {% if user.is_authenticated %}
-                {% if user.is_teacher %}
+                {% if user.is_superuser %}
+                    <a href="{% url 'accounts:teacher_dashboard' %}" class="block text-gray-600 text-sm">管理后台</a>
+                {% elif user.is_teacher %}
                     <a href="{% url 'accounts:teacher_dashboard' %}" class="block text-gray-600 text-sm">教学管理</a>
                 {% elif user.is_ta %}
                     <a href="{% url 'accounts:ta_dashboard' %}" class="block text-gray-600 text-sm">助教工作台</a>

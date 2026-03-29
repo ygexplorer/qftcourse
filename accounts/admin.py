@@ -77,14 +77,15 @@ class CustomUserAdmin(UserAdmin):
         """
         保存用户时同步角色与 Django 权限：
         - role='admin' → is_staff=True, is_superuser=True
-        - role 改为非 admin → is_staff=False, is_superuser=False
+        - 禁止 superuser 把自己的权限降级
         """
         if obj.role == 'admin' and not obj.is_superuser:
             obj.is_staff = True
             obj.is_superuser = True
-        elif obj.role != 'admin' and obj.is_superuser and not request.user.is_superuser:
-            # 非 superuser 不能把别人的 admin 权限改掉，只在自己操作时生效
-            pass
+        # 保护：不允许 superuser 将自己的 is_superuser 设为 False
+        if request.user.is_superuser and obj.pk == request.user.pk:
+            obj.is_superuser = True
+            obj.is_staff = True
         super().save_model(request, obj, form, changed)
 
     def changelist_view(self, request, extra_context=None):
@@ -111,6 +112,9 @@ class CustomUserAdmin(UserAdmin):
         return self._is_teacher_or_admin(request)
 
     def has_change_permission(self, request, obj=None):
+        # 主管理员 admin 的角色/权限不允许其他人修改
+        if obj is not None and obj.username == 'admin' and obj.pk != request.user.pk:
+            return False
         if request.user.is_superuser:
             return True
         if not request.user.is_authenticated:
@@ -122,6 +126,12 @@ class CustomUserAdmin(UserAdmin):
         return role in ('teacher', 'admin')
 
     def has_delete_permission(self, request, obj=None):
+        # 禁止删除自己的账号
+        if obj is not None and request.user.is_authenticated and obj.pk == request.user.pk:
+            return False
+        # 主管理员 admin 不可删除
+        if obj is not None and obj.username == 'admin':
+            return False
         if request.user.is_superuser:
             return True
         if not request.user.is_authenticated:

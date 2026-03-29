@@ -11,6 +11,7 @@
 
 from functools import wraps
 from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required as django_login_required
 from django.contrib import messages
 
 
@@ -28,11 +29,15 @@ def role_required(*roles):
                 messages.warning(request, '请先登录后再访问该页面。')
                 return redirect('accounts:login')
 
-            # 2. 已登录但角色不匹配 → 跳转无权限页
+            # 2. superuser 拥有所有权限，直接放行
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+
+            # 3. 已登录但角色不匹配 → 跳转无权限页
             if request.user.role not in roles:
                 return redirect('accounts:permission_denied')
 
-            # 3. 角色匹配 → 放行
+            # 4. 角色匹配 → 放行
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
@@ -62,4 +67,4 @@ def student_required(view_func):
 
 def login_required(view_func):
     """登录即可访问（不限角色）"""
-    return role_required('student', 'ta', 'teacher')(view_func)
+    return django_login_required(view_func)
