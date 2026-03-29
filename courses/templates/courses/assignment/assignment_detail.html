@@ -4,7 +4,7 @@
 {% block title %}{{ assignment.title }} — 规范场课程{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8">
+<div class="max-w-4xl mx-auto px-4 py-8" x-data>
     {# 面包屑 #}
     <a href="{% url 'courses:assignment_list' %}" class="text-primary-600 hover:text-primary-700 text-sm mb-4 inline-block">&larr; 返回作业列表</a>
 
@@ -44,7 +44,7 @@
     {# ═══════════ 学生视图 ═══════════ #}
     {% if role == 'student' %}
 
-        {# 已有提交 → 显示提交记录 #}
+        {# 已有提交 → 显示提交记录 + 分数评语 #}
         {% if submission %}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">我的提交</h2>
@@ -76,9 +76,37 @@
             </div>
             {% endif %}
             {% if submission.is_late and submission.late_reason %}
-            <div class="text-sm bg-red-50 border border-red-100 rounded-lg p-3">
+            <div class="text-sm bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
                 <span class="text-red-400">逾期原因：</span>
                 <span class="text-red-700">{{ submission.late_reason|linebreaks }}</span>
+            </div>
+            {% endif %}
+
+            {# ── 分数与评语（新增） ── #}
+            {% if submission.score is not None %}
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-gray-400 text-sm">📊 评分</span>
+                        <p class="text-2xl font-bold {% if submission.score >= 60 %}text-green-600{% else %}text-red-500{% endif %}">
+                            {{ submission.score }}<span class="text-sm font-normal text-gray-400 ml-1">分</span>
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-sm">评分时间</span>
+                        <p class="text-gray-600 text-sm">{{ submission.scored_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                </div>
+                {% if submission.feedback %}
+                <div class="mt-4">
+                    <span class="text-gray-400 text-sm">💬 评语</span>
+                    <p class="text-gray-700 mt-1 bg-gray-50 rounded-lg p-3">{{ submission.feedback|linebreaks }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-sm text-gray-400">📊 尚未批改，请耐心等待。</span>
             </div>
             {% endif %}
         </div>
@@ -151,7 +179,20 @@
     {% else %}
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">提交记录（{{ submissions|length }} 份）</h2>
+            <div class="flex items-center gap-4 mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex-1">
+                    提交记录（{{ submissions|length }} 份）
+                    {% if submissions %}
+                    <span class="text-sm font-normal text-gray-400 ml-2">
+                        已评分 {{ submissions|graded_count }} / {{ submissions|length }}
+                    </span>
+                    {% endif %}
+                </h2>
+                <a href="{% url 'courses:grading_workstation' assignment.pk %}"
+                   class="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium flex-shrink-0">
+                    ✏️ 进入评分工作台
+                </a>
+            </div>
 
             {% if submissions %}
             <div class="overflow-x-auto">
@@ -164,6 +205,8 @@
                             <th class="text-left py-3 px-2 text-gray-500 font-medium">状态</th>
                             <th class="text-left py-3 px-2 text-gray-500 font-medium">文件</th>
                             <th class="text-left py-3 px-2 text-gray-500 font-medium">留言</th>
+                            <th class="text-center py-3 px-2 text-gray-500 font-medium">评分</th>
+                            <th class="text-center py-3 px-2 text-gray-500 font-medium">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -199,6 +242,61 @@
                                     逾期原因：{{ sub.late_reason|truncatechars:30 }}
                                 </div>
                                 {% endif %}
+                            </td>
+                            {# ── 评分列（新增） ── #}
+                            <td class="py-3 px-2 text-center">
+                                {% if sub.score is not None %}
+                                <span class="inline-block font-bold {% if sub.score >= 60 %}text-green-600{% else %}text-red-500{% endif %}">
+                                    {{ sub.score }}<span class="font-normal text-gray-400">分</span>
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-gray-300">待批改</span>
+                                {% endif %}
+                            </td>
+                            {# ── 操作列（新增） ── #}
+                            <td class="py-3 px-2 text-center">
+                                <button @click="$refs.grading_{{ sub.pk }}.classList.toggle('hidden')"
+                                        class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium cursor-pointer bg-transparent border-none p-0">
+                                    ✏️
+                                </button>
+                            </td>
+                        </tr>
+
+                        {# ── 内联评分表单（点击 ✏️ 展开） ── #}
+                        <tr class="border-b border-gray-100 hidden" x-ref="grading_{{ sub.pk }}">
+                            <td colspan="8" class="px-2 py-4">
+                                <form method="post" action="{% url 'courses:grade_submission' sub.pk %}"
+                                      class="bg-primary-50 rounded-lg p-4">
+                                    {% csrf_token %}
+                                    <div class="flex flex-wrap items-start gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                分数 <span class="text-gray-400 font-normal">（留空可清除评分）</span>
+                                            </label>
+                                            <input type="number" name="score" min="0" max="100"
+                                                   value="{% if sub.score is not None %}{{ sub.score }}{% endif %}"
+                                                   class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm text-center focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                                   placeholder="0-100">
+                                        </div>
+                                        <div class="flex-1 min-w-[240px]">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">评语</label>
+                                            <textarea name="feedback" rows="2"
+                                                      class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                                      placeholder="可选：给学生写评语">{{ sub.feedback }}</textarea>
+                                        </div>
+                                        <div class="flex items-end gap-2 pt-5">
+                                            <button type="submit"
+                                                    class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                                                保存评分
+                                            </button>
+                                            <button type="button"
+                                                    @click="$refs.grading_{{ sub.pk }}.classList.add('hidden')"
+                                                    class="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-300 transition text-sm">
+                                                取消
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}

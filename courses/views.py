@@ -3,15 +3,15 @@
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.http import Http404, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 import logging
 
-from .models import Semester, Chapter, Assignment, Submission
-from .forms import SubmissionForm
-from .decorators import teacher_required, ta_required, student_required
+from .models import Semester, Chapter, Assignment, Submission, Announcement
+from .forms import SubmissionForm, GradingForm
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def home(request):
 
 
 def semester_home(request, slug):
-    """学期首页 — 展示该学期的章节列表"""
+    """学期首页 — 展示该学期的章节列表 + 公告"""
     semester = get_object_or_404(Semester, slug=slug)
     user = request.user
 
@@ -40,14 +40,42 @@ def semester_home(request, slug):
     else:
         chapters = semester.chapters.filter(is_published=True)
 
+    # 公告：置顶全部展示，普通取最近 5 条
+    pinned = semester.announcements.filter(is_pinned=True)
+    recent = semester.announcements.filter(is_pinned=False)[:5]
+    has_more = semester.announcements.filter(is_pinned=False).count() > 5
+
     return render(request, 'courses/semester_home.html', {
         'semester': semester,
         'chapters': chapters,
+        'pinned_announcements': pinned,
+        'recent_announcements': recent,
+        'has_more_announcements': has_more,
+    })
+
+
+def announcement_list(request, slug):
+    """学期公告列表页 — 展示该学期全部公告"""
+    semester = get_object_or_404(Semester, slug=slug)
+    announcements = semester.announcements.all()
+
+    return render(request, 'courses/announcement_list.html', {
+        'semester': semester,
+        'announcements': announcements,
+    })
+
+
+def announcement_detail(request, pk):
+    """公告详情页"""
+    announcement = get_object_or_404(Announcement, pk=pk)
+    return render(request, 'courses/announcement_detail.html', {
+        'announcement': announcement,
+        'semester': announcement.semester,
     })
 
 
 def chapter_detail(request, semester_slug, chapter_slug):
-    """章节详情页 — Markdown 渲染"""
+    """章节详情页 — Markdown 渲染 + 子目录 + 讲义下载"""
     chapter = get_object_or_404(
         Chapter,
         semester__slug=semester_slug,
@@ -70,12 +98,19 @@ def chapter_detail(request, semester_slug, chapter_slug):
     prev_chapter = chapter_list[idx - 1] if idx > 0 else None
     next_chapter = chapter_list[idx + 1] if idx < len(chapter_list) - 1 else None
 
+    # 提取子目录（H2/H3）
+    from .templatetags.markdown_tags import extract_toc_filter
+    toc_list = extract_toc_filter(chapter.content)
+
     return render(request, 'courses/chapter_detail.html', {
         'chapter': chapter,
         'semester': chapter.semester,
+        'chapter_list': chapter_list,
         'prev_chapter': prev_chapter,
         'next_chapter': next_chapter,
         'is_draft_preview': is_teacher and not chapter.is_published,
+        'toc_list': toc_list,
+        'is_logged_in': user.is_authenticated,
     })
 
 
@@ -291,3 +326,140 @@ def download_attachment(request, pk):
         filename=assignment.attachment_filename or assignment.attachment.name.split('/')[-1],
     )
     return response
+
+
+@login_required
+def download_lecture(request, pk):
+    """
+    下载章节讲义 PDF
+    - 所有已登录用户都可以下载
+    - 未发布章节的讲义仅教师可见
+    """
+    chapter = get_object_or_404(Chapter, pk=pk)
+    user = request.user
+
+    if not chapter.is_published and not getattr(user, 'is_teacher', False):
+        raise Http404
+
+    if not chapter.lecture_pdf:
+        raise Http404("讲义不存在")
+
+    response = FileResponse(
+        chapter.lecture_pdf.open('rb'),
+        content_type='application/pdf',
+        as_attachment=True,
+        filename=chapter.lecture_pdf_filename or chapter.lecture_pdf.name.split('/')[-1],
+    )
+    return response
+
+
+@login_required
+def grading_workstation(request, pk):
+    """
+    教师/TA 评分工作台 — 统一查看和评分某个作业的所有提交
+
+    功能：
+    - 卡片式展示所有学生提交
+    - 内联评分（分数 + 评语）
+    - 页面顶部统计概览
+    """
+    assignment = get_object_or_404(Assignment, pk=pk)
+    user = request.user
+
+    # 权限：仅教师和 TA
+    if user.role not in ('teacher', 'ta'):
+        raise Http404
+
+    # TA 不能看未发布作业
+    if not assignment.is_published and not getattr(user, 'is_teacher', False):
+        raise Http404
+
+    submissions = assignment.submissions.select_related('student').all()
+
+    # 统计数据
+    total = len(submissions)
+    graded = sum(1 for s in submissions if s.score is not None)
+    ungraded = total - graded
+    late_count = sum(1 for s in submissions if s.is_late)
+
+    return render(request, 'courses/assignment/grading_workstation.html', {
+        'assignment': assignment,
+        'submissions': submissions,
+        'total': total,
+        'graded': graded,
+        'ungraded': ungraded,
+        'late_count': late_count,
+        'now': timezone.now(),
+    })
+
+
+@login_required
+def grade_submission(request, pk):
+    """
+    教师/TA 对某个提交进行评分（POST）
+
+    评分逻辑：
+    - score 填了：保存分数、评语、评分人、评分时间
+    - score 留空：清除之前的评分（相当于"取消评分"）
+
+    跳转逻辑：
+    - POST 参数 next_mode=next_ungraded → 保存后跳转到下一个未评分项
+    - 否则 → 回到评分工作台
+    - 如果从旧的 assignment_detail 页面提交 → 回到 assignment_detail
+    """
+    submission = get_object_or_404(Submission, pk=pk)
+    user = request.user
+
+    # 权限：仅教师和 TA
+    if user.role not in ('teacher', 'ta'):
+        raise Http404
+
+    if request.method != 'POST':
+        return redirect('courses:assignment_detail', pk=submission.assignment.pk)
+
+    form = GradingForm(request.POST)
+    if form.is_valid():
+        score = form.cleaned_data.get('score')
+        feedback = form.cleaned_data.get('feedback', '')
+
+        if score is not None:
+            submission.score = score
+            submission.feedback = feedback
+            submission.scored_at = timezone.now()
+            submission.scored_by = user
+        else:
+            submission.score = None
+            submission.feedback = ''
+            submission.scored_at = None
+            submission.scored_by = None
+
+        submission.save()
+        messages.success(request, '评分已保存。')
+    else:
+        for field, errors in form.errors.items():
+            for e in errors:
+                messages.error(request, f'{form.fields[field].label}：{e}')
+
+    # 判断从哪里来的，决定跳转目标
+    next_mode = request.POST.get('next_mode', '')
+    referer = request.META.get('HTTP_REFERER', '')
+
+    if next_mode == 'next_ungraded':
+        # "保存并评下一个" → 找下一个未评分的提交
+        all_subs = Submission.objects.filter(
+            assignment=submission.assignment
+        ).order_by('created_at')
+        next_sub = all_subs.filter(score__isnull=True).exclude(pk=submission.pk).first()
+        if next_sub:
+            # 跳转到工作台，并定位到下一个卡片
+            url = reverse('courses:grading_workstation', kwargs={'pk': submission.assignment.pk})
+            return redirect(url + f'#submission-{next_sub.pk}')
+        else:
+            messages.info(request, '🎉 全部评分完成！')
+            return redirect('courses:grading_workstation', pk=submission.assignment.pk)
+    elif 'grading' in referer:
+        # 从评分工作台来的普通保存
+        return redirect('courses:grading_workstation', pk=submission.assignment.pk)
+    else:
+        # 从旧的 assignment_detail 页面来的
+        return redirect('courses:assignment_detail', pk=submission.assignment.pk)

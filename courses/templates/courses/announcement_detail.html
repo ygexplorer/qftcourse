@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load markdown_tags %}
+
+{% block title %}{{ announcement.title }} — {{ semester.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    {# 面包屑 #}
+    <a href="{% url 'courses:semester_home' semester.slug %}"
+       class="text-primary-600 hover:text-primary-700 text-sm mb-6 inline-block">&larr; 返回 {{ semester.name }}</a>
+
+    {# 公告内容 #}
+    <article class="bg-white rounded-xl border border-gray-200 shadow-sm">
+        {# 标题区 #}
+        <div class="p-6 md:p-8 border-b border-gray-100">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{{ announcement.title }}</h1>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+                {% if announcement.is_pinned %}
+                <span class="inline-flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                    📌 置顶
+                </span>
+                {% endif %}
+                <span>{{ announcement.created_at|date:"Y-m-d" }}</span>
+                {% if user.is_authenticated and user.is_teacher %}
+                <span>·</span>
+                <span>{{ announcement.author.display_name|default:announcement.author.username }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# 正文 #}
+        <div class="p-6 md:p-8">
+            {% if announcement.content %}
+            <div class="prose prose-gray max-w-none
+                        prose-headings:text-gray-800 prose-p:text-gray-700
+                        prose-a:text-primary-600 prose-strong:text-gray-900
+                        prose-code:text-primary-700 prose-pre:bg-gray-50">
+                {{ announcement.content|markdown }}
+            </div>
+            {% else %}
+            <p class="text-gray-400">该公告没有正文内容。</p>
+            {% endif %}
+        </div>
+    </article>
+</div>
+{% endblock %}

@@ -58,6 +58,7 @@
                     <span class="text-sm text-gray-500">{{ user.display_name|default:user.username }}
                         <span class="text-xs text-gray-400">({{ user.get_role_display }})</span>
                     </span>
+                    <a href="{% url 'accounts:profile_edit' %}" class="text-sm text-gray-500 hover:text-primary-600">个人资料</a>
                     <a href="{% url 'accounts:password_change' %}" class="text-sm text-gray-500 hover:text-primary-600">修改密码</a>
                     <form method="post" action="{% url 'accounts:logout' %}" class="inline">
                         {% csrf_token %}
@@ -89,6 +90,7 @@
                 {% else %}
                     <a href="{% url 'courses:assignment_list' %}" class="block text-gray-600 text-sm">我的作业</a>
                 {% endif %}
+                <a href="{% url 'accounts:profile_edit' %}" class="block text-gray-500 text-sm">个人资料</a>
                 <a href="{% url 'accounts:password_change' %}" class="block text-gray-500 text-sm">修改密码</a>
                 <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
                     {% csrf_token %}

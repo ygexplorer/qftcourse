@@ -72,3 +72,36 @@ class SubmissionForm(forms.ModelForm):
             if ext != 'pdf':
                 raise ValidationError('只支持 PDF 文件。')
         return f
+
+
+class GradingForm(forms.Form):
+    """
+    教师/TA 评分表单
+
+    字段：score（0-100 整数）、feedback（评语）
+    """
+
+    score = forms.IntegerField(
+        label='分数',
+        min_value=0,
+        max_value=100,
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm text-center focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+            'placeholder': '0-100',
+        }),
+    )
+    feedback = forms.CharField(
+        label='评语',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': '可选：给学生写评语',
+            'class': 'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+        }),
+    )
+
+    def clean_score(self):
+        """空值转 None（表示暂不评分）"""
+        score = self.cleaned_data.get('score')
+        return score if score is not None else None

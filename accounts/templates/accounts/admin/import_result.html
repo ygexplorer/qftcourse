@@ -1,0 +1,123 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% load import_tags %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:accounts_user_changelist' %}">用户</a>
+&rsaquo; 批量导入学生
+&rsaquo; 导入结果
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>导入结果</h1>
+
+<div id="content-main" style="max-width: 700px;">
+    {# 统计概览 #}
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;">
+        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #111;">{{ total }}</div>
+            <div style="font-size: 12px; color: #6b7280;">总记录</div>
+        </div>
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #059669;">{{ created|length }}</div>
+            <div style="font-size: 12px; color: #047857;">✅ 成功导入</div>
+        </div>
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #d97706;">{{ skipped|length }}</div>
+            <div style="font-size: 12px; color: #b45309;">⏭️ 已存在跳过</div>
+        </div>
+        <div style="background: {% if errors %}#fef2f2{% else %}#f9fafb{% endif %}; border: 1px solid {% if errors %}#fca5a5{% else %}#e5e7eb{% endif %}; border-radius: 8px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: {% if errors %}#dc2626{% else %}#111{% endif %};">{{ errors|length }}</div>
+            <div style="font-size: 12px; color: {% if errors %}#991b1b{% else %}#6b7280{% endif %};">❌ 失败</div>
+        </div>
+    </div>
+
+    {# 成功导入列表 #}
+    {% if created %}
+    <div class="module" style="margin-bottom: 20px;">
+        <h2>✅ 成功导入（{{ created|length }} 人）</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">#</th>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>初始密码</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sid, name in created %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td><code>{{ sid }}</code></td>
+                    <td>{{ name }}</td>
+                    <td style="color: #6b7280; font-family: monospace;">{{ sid|last6 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# 已存在跳过列表 #}
+    {% if skipped %}
+    <div class="module" style="margin-bottom: 20px;">
+        <h2>⏭️ 已存在，跳过（{{ skipped|length }} 人）</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">#</th>
+                    <th>学号</th>
+                    <th>姓名</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sid, name in skipped %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td><code>{{ sid }}</code></td>
+                    <td>{{ name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# 错误列表 #}
+    {% if errors %}
+    <div class="module" style="margin-bottom: 20px;">
+        <h2>❌ 导入失败（{{ errors|length }} 条）</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">行号</th>
+                    <th>原因</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row_num, reason in errors %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>第 {{ row_num }} 行</td>
+                    <td style="color: #991b1b;">{{ reason }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# 操作按钮 #}
+    <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <a href="{% url 'import_students' %}" class="button" style="background: #417690; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
+            📤 继续导入
+        </a>
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="button" style="background: #f9fafb; color: #374151; padding: 8px 16px; border-radius: 4px; text-decoration: none; border: 1px solid #d1d5db;">
+            查看用户列表
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+{% load markdown_tags %}
+
+{% block title %}评分工作台 — {{ assignment.title }} — 规范场课程{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8"
+     x-data="gradingApp()"
+     x-init="initScroll()">
+
+    {# ── 顶部导航 ── #}
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+        <a href="{% url 'courses:assignment_list' %}"
+           class="text-primary-600 hover:text-primary-700 text-sm">&larr; 返回作业列表</a>
+        <span class="text-gray-300">|</span>
+        <a href="{% url 'courses:assignment_detail' assignment.pk %}"
+           class="text-gray-500 hover:text-gray-700 text-sm">作业详情</a>
+    </div>
+
+    {# ── 作业信息 ── #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">✏️ 评分工作台</h1>
+                <h2 class="text-lg font-semibold text-gray-800">{{ assignment.title }}</h2>
+                <div class="flex flex-wrap gap-3 text-sm text-gray-400 mt-2">
+                    <span>{{ assignment.semester.name }}</span>
+                    {% if assignment.due_date %}
+                    <span>· 截止：{{ assignment.due_date|date:"Y-m-d H:i" }}</span>
+                        {% if now > assignment.due_date %}
+                        <span class="text-red-500 font-medium">（已截止）</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% if assignment.attachment %}
+            <a href="{% url 'courses:download_attachment' assignment.pk %}"
+               class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition text-sm flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                下载作业附件
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── 统计概览 ── #}
+    {% if total > 0 %}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-center">
+            <div class="text-2xl font-bold text-gray-800">{{ total }}</div>
+            <div class="text-xs text-gray-400 mt-0.5">总提交</div>
+        </div>
+        <div class="bg-green-50 rounded-xl border border-green-200 px-4 py-3 text-center">
+            <div class="text-2xl font-bold text-green-600">{{ graded }}</div>
+            <div class="text-xs text-green-500 mt-0.5">已评分</div>
+        </div>
+        <div class="bg-orange-50 rounded-xl border border-orange-200 px-4 py-3 text-center">
+            <div class="text-2xl font-bold text-orange-600">{{ ungraded }}</div>
+            <div class="text-xs text-orange-500 mt-0.5">待评分</div>
+        </div>
+        <div class="bg-red-50 rounded-xl border border-red-200 px-4 py-3 text-center">
+            <div class="text-2xl font-bold text-red-500">{{ late_count }}</div>
+            <div class="text-xs text-red-400 mt-0.5">逾期</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── 筛选栏 + 搜索 ── #}
+    {% if submissions %}
+    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            {# 筛选按钮 #}
+            <div class="flex flex-wrap gap-2">
+                <button @click="setFilter('all')"
+                        :class="filter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    全部
+                </button>
+                <button @click="setFilter('ungraded')"
+                        :class="filter === 'ungraded' ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-600 hover:bg-orange-100'"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    ⏳ 未评分
+                </button>
+                <button @click="setFilter('graded')"
+                        :class="filter === 'graded' ? 'bg-green-600 text-white' : 'bg-green-50 text-green-600 hover:bg-green-100'"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    ✅ 已评分
+                </button>
+                <button @click="setFilter('late')"
+                        :class="filter === 'late' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600 hover:bg-red-100'"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    ⚠️ 逾期
+                </button>
+            </div>
+
+            {# 搜索框 #}
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" x-model="search" placeholder="🔍 搜索学生姓名…"
+                       class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── 提交卡片列表 ── #}
+    {% if submissions %}
+    <div class="space-y-4">
+        {% for sub in submissions %}
+        <div class="submission-card"
+             id="submission-{{ sub.pk }}"
+             data-scored="{% if sub.score is not None %}true{% else %}false{% endif %}"
+             data-late="{% if sub.is_late %}true{% else %}false{% endif %}"
+             data-name="{{ sub.student.display_name|default:sub.student.username }}"
+             x-show="isVisible({{ forloop.counter0 }})"
+             x-transition.opacity.duration.200ms>
+
+            {# 卡片主体 #}
+            <div class="bg-white rounded-xl border-l-4 shadow-sm
+                        {% if sub.score is not None %}
+                            border-l-green-400 border border-gray-200
+                        {% elif sub.is_late %}
+                            border-l-red-400 border border-red-100
+                        {% else %}
+                            border-l-orange-400 border border-orange-100
+                        {% endif %}
+                        hover:shadow-md transition-shadow">
+                <div class="p-5">
+                    {# 第1行：学生信息 + 状态标签 #}
+                    <div class="flex flex-wrap items-center gap-3 mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                {{ sub.student.display_name|default:sub.student.username|make_initial }}
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-800">
+                                    {{ sub.student.display_name|default:sub.student.username }}
+                                </span>
+                                {% if sub.student.student_id %}
+                                <span class="text-gray-400 text-sm ml-2">{{ sub.student.student_id }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 ml-auto">
+                            {% if sub.is_late %}
+                            <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-medium">⚠️ 逾期</span>
+                            {% else %}
+                            <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">✅ 按时</span>
+                            {% endif %}
+                            {% if sub.score is not None %}
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full
+                                         {% if sub.score >= 60 %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ sub.score }}分
+                            </span>
+                            {% else %}
+                            <span class="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">待评分</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# 第2行：提交详情（时间、文件、留言） #}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
+                        <div>
+                            <span class="text-gray-400">提交时间</span>
+                            <p class="text-gray-600">{{ sub.created_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">作业文件</span>
+                            {% if sub.file %}
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'courses:download_submission' sub.pk %}"
+                                   class="text-primary-600 hover:text-primary-700 hover:underline truncate"
+                                   title="{{ sub.file_name }}">
+                                    {{ sub.file_name }}
+                                </a>
+                                <span class="text-gray-300 flex-shrink-0">({{ sub.file_size|filesize }})</span>
+                            </div>
+                            {% else %}
+                            <p class="text-gray-300">无文件</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="text-gray-400">评分人</span>
+                            <p class="text-gray-600">
+                                {% if sub.scored_by %}
+                                    {{ sub.scored_by.display_name|default:sub.scored_by.username }}
+                                    {% if sub.scored_at %}
+                                    · {{ sub.scored_at|date:"m-d H:i" }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-300">-</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {# 学生留言 #}
+                    {% if sub.message %}
+                    <div class="bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-600 mb-1">
+                        <span class="text-gray-400">💬 留言：</span>{{ sub.message }}
+                    </div>
+                    {% endif %}
+
+                    {# 逾期原因 #}
+                    {% if sub.is_late and sub.late_reason %}
+                    <div class="bg-red-50 rounded-lg px-3 py-2 text-sm text-red-600 mb-1">
+                        <span class="text-red-400">逾期原因：</span>{{ sub.late_reason }}
+                    </div>
+                    {% endif %}
+
+                    {# ── 内联评分区 ── #}
+                    <div class="border-t border-gray-100 mt-3 pt-4">
+                        <form method="post" action="{% url 'courses:grade_submission' sub.pk %}">
+                            {% csrf_token %}
+                            <div class="flex flex-wrap items-start gap-4">
+                                {# 分数 #}
+                                <div class="flex-shrink-0">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        分数 <span class="text-gray-400 font-normal text-xs">（0-100，留空清除）</span>
+                                    </label>
+                                    <input type="number" name="score" min="0" max="100"
+                                           value="{% if sub.score is not None %}{{ sub.score }}{% endif %}"
+                                           class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-lg text-center font-bold focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                           placeholder="—"
+                                           :id="'score-' + {{ sub.pk }}">
+                                </div>
+                                {# 评语 #}
+                                <div class="flex-1 min-w-[200px]">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        评语 <span class="text-gray-400 font-normal text-xs">（可选）</span>
+                                    </label>
+                                    <textarea name="feedback" rows="2"
+                                              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                              placeholder="给学生写评语…">{{ sub.feedback }}</textarea>
+                                </div>
+                                {# 按钮 #}
+                                <div class="flex flex-col gap-2 pt-5 flex-shrink-0">
+                                    <button type="submit"
+                                            class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium whitespace-nowrap">
+                                        💾 保存
+                                    </button>
+                                    <button type="submit" name="next_mode" value="next_ungraded"
+                                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium whitespace-nowrap">
+                                        保存并下一个 →
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# 无匹配结果提示 #}
+    <div x-show="visibleCount() === 0" x-cloak
+         class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400 mt-4">
+        没有符合筛选条件的提交。
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
+        暂无学生提交。
+    </div>
+    {% endif %}
+</div>
+
+<script>
+/**
+ * Alpine.js 评分工作台控制器
+ *
+ * 功能：
+ * - 筛选（全部/未评分/已评分/逾期）
+ * - 搜索（按学生姓名模糊匹配）
+ * - 页面加载时自动滚动到 hash 指定的卡片
+ */
+function gradingApp() {
+    return {
+        filter: 'all',       // 当前筛选: all / graded / ungraded / late
+        search: '',          // 搜索关键词
+
+        /**
+         * 判断第 i 张卡片是否应该显示
+         */
+        isVisible(index) {
+            const cards = document.querySelectorAll('.submission-card');
+            if (!cards[index]) return false;
+
+            const card = cards[index];
+            const scored = card.dataset.scored === 'true';
+            const late = card.dataset.late === 'true';
+            const name = (card.dataset.name || '').toLowerCase();
+
+            // 筛选条件
+            let passFilter = true;
+            if (this.filter === 'graded') passFilter = scored;
+            else if (this.filter === 'ungraded') passFilter = !scored;
+            else if (this.filter === 'late') passFilter = late;
+
+            // 搜索条件
+            const passSearch = !this.search || name.includes(this.search.toLowerCase());
+
+            return passFilter && passSearch;
+        },
+
+        /**
+         * 当前可见卡片数量
+         */
+        visibleCount() {
+            const cards = document.querySelectorAll('.submission-card');
+            let count = 0;
+            cards.forEach((_, i) => { if (this.isVisible(i)) count++; });
+            return count;
+        },
+
+        /**
+         * 设置筛选条件
+         */
+        setFilter(f) {
+            this.filter = f;
+        },
+
+        /**
+         * 页面加载时，如果 URL 有 hash（如 #submission-5），
+         * 自动滚动到对应卡片并聚焦分数输入框
+         */
+        initScroll() {
+            // 等待 DOM 渲染完成
+            this.$nextTick(() => {
+                const hash = window.location.hash;
+                if (hash && hash.startsWith('#submission-')) {
+                    const target = document.getElementById(hash.slice(1));
+                    if (target) {
+                        // 延迟一帧确保 x-show 渲染完成
+                        setTimeout(() => {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // 聚焦分数输入框
+                            const scoreInput = target.querySelector('input[name="score"]');
+                            if (scoreInput) {
+                                setTimeout(() => scoreInput.focus(), 500);
+                            }
+                            // 高亮闪烁效果
+                            const card = target.querySelector('.bg-white');
+                            if (card) {
+                                card.classList.add('ring-2', 'ring-primary-400');
+                                setTimeout(() => {
+                                    card.classList.remove('ring-2', 'ring-primary-400');
+                                }, 2000);
+                            }
+                        }, 100);
+                    }
+                }
+            });
+        },
+    };
+}
+</script>
+
+<style>
+/* x-cloak 隐藏未初始化元素 */
+[x-cloak] { display: none !important; }
+</style>
+{% endblock %}

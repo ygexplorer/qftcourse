@@ -125,3 +125,50 @@ class CustomPasswordChangeForm(PasswordChangeForm):
             self.fields[field_name].widget.attrs.update(field_attrs)
             self.fields[field_name].widget.attrs['placeholder'] = placeholders.get(field_name, '')
             self.fields[field_name].label = labels.get(field_name, self.fields[field_name].label)
+
+
+class ProfileEditForm(forms.ModelForm):
+    """
+    个人资料编辑表单 — 仅允许修改 display_name 和 student_id
+    username 和 role 不可修改，防止用户篡改身份信息
+    """
+
+    class Meta:
+        model = User
+        fields = ['display_name', 'student_id']
+        widgets = {
+            'display_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition',
+                'placeholder': '你的真实姓名（选填）',
+            }),
+            'student_id': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition',
+                'placeholder': '学号（选填）',
+            }),
+        }
+
+
+class ImportStudentsForm(forms.Form):
+    """
+    上传 Excel 选课单，批量创建学生账号
+
+    期望的 Excel 格式：
+    - 必须包含「学号」和「姓名」两列
+    - 支持 .xls 和 .xlsx 格式
+    """
+
+    excel_file = forms.FileField(
+        label='选课单文件',
+        help_text='支持 .xls / .xlsx 格式，必须包含「学号」和「姓名」列',
+        widget=forms.FileInput(attrs={
+            'accept': '.xls,.xlsx',
+        }),
+    )
+
+    def clean_excel_file(self):
+        f = self.cleaned_data.get('excel_file')
+        if f and hasattr(f, 'name'):
+            name = f.name.lower()
+            if not (name.endswith('.xls') or name.endswith('.xlsx')):
+                raise ValidationError('只支持 .xls 或 .xlsx 格式的 Excel 文件。')
+        return f

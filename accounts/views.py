@@ -11,7 +11,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib import messages
 from django.urls import reverse
 
-from .forms import CustomLoginForm, StudentRegistrationForm, CustomPasswordChangeForm
+from .models import User
+from .forms import CustomLoginForm, StudentRegistrationForm, CustomPasswordChangeForm, ImportStudentsForm, ProfileEditForm
 from .decorators import teacher_required, ta_required, student_required, role_required
 
 
@@ -117,6 +118,28 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 
 # ──────────────────────────────────────────
+# 个人资料编辑
+# ──────────────────────────────────────────
+
+@django_login_required
+def profile_edit(request):
+    """
+    个人资料编辑 — 所有已登录角色均可访问
+    仅允许修改 display_name 和 student_id，不可修改 username 和 role
+    """
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '个人资料已更新。')
+            return _redirect_by_role(request.user)
+    else:
+        form = ProfileEditForm(instance=request.user)
+
+    return render(request, 'accounts/profile_edit.html', {'form': form})
+
+
+# ──────────────────────────────────────────
 # 权限拒绝页（403 友好提示）
 # ──────────────────────────────────────────
 
@@ -161,6 +184,111 @@ def ta_dashboard(request):
     return render(request, 'courses/ta/dashboard.html', {
         'role': 'ta',
     })
+
+
+# ──────────────────────────────────────────
+# 学生批量导入（Admin 页面）
+# ──────────────────────────────────────────
+
+def import_students_view(request):
+    """
+    批量导入学生 — 在 Admin 页面中上传 Excel 选课单
+
+    导入逻辑：
+    - 读取 Excel 的「学号」和「姓名」列
+    - 用户名 = 学号，display_name = 姓名，student_id = 学号
+    - 初始密码 = 学号后 6 位
+    - 角色固定为 student
+    - 如果用户名已存在则跳过
+    """
+    if request.method == 'POST':
+        form = ImportStudentsForm(request.POST, request.FILES)
+        if form.is_valid():
+            result = _do_import(form.cleaned_data['excel_file'])
+            return render(request, 'accounts/admin/import_result.html', {
+                **result,
+                'title': '导入结果',
+            })
+    else:
+        form = ImportStudentsForm()
+
+    return render(request, 'accounts/admin/import_students.html', {
+        'form': form,
+        'title': '批量导入学生',
+        'opts': User._meta,
+    })
+
+
+def _do_import(excel_file):
+    """
+    执行导入，返回结果字典
+
+    返回：
+    {
+        'total': int,      # 总行数
+        'created': list,   # 成功创建的 [(学号, 姓名), ...]
+        'skipped': list,   # 已存在跳过的 [(学号, 姓名), ...]
+        'errors': list,    # 导入失败的 [(行号, 原因), ...]
+    }
+    """
+    import pandas as pd
+
+    created = []
+    skipped = []
+    errors = []
+
+    try:
+        df = pd.read_excel(excel_file, dtype={'学号': str})
+    except Exception as e:
+        return {
+            'total': 0, 'created': created, 'skipped': skipped,
+            'errors': [(0, f'读取 Excel 失败: {e}')],
+        }
+
+    # 检查必须的列
+    if '学号' not in df.columns or '姓名' not in df.columns:
+        return {
+            'total': len(df), 'created': created, 'skipped': skipped,
+            'errors': [(0, f'Excel 缺少必须的列。当前列名: {list(df.columns)}，需要「学号」和「姓名」。')],
+        }
+
+    total = len(df)
+    for idx, row in df.iterrows():
+        student_id = str(row.get('学号', '')).strip()
+        name = str(row.get('姓名', '')).strip()
+
+        # 跳过空行
+        if not student_id or not name or student_id == 'nan' or name == 'nan':
+            errors.append((idx + 2, f'学号或姓名为空（学号={student_id}, 姓名={name}）'))
+            continue
+
+        # 密码 = 学号后 6 位
+        password = student_id[-6:]
+
+        # 检查是否已存在
+        if User.objects.filter(username=student_id).exists():
+            skipped.append((student_id, name))
+            continue
+
+        # 创建用户
+        try:
+            user = User.objects.create_user(
+                username=student_id,
+                password=password,
+                display_name=name,
+                student_id=student_id,
+                role='student',
+            )
+            created.append((student_id, name))
+        except Exception as e:
+            errors.append((idx + 2, f'创建失败: {e}'))
+
+    return {
+        'total': total,
+        'created': created,
+        'skipped': skipped,
+        'errors': errors,
+    }
 
 
 

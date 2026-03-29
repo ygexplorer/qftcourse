@@ -1,6 +1,8 @@
 # 部署指南 — 腾讯云 CVM (Ubuntu 22.04)
 
 > 面向新手：假设你不熟悉 Linux 服务器操作，按步骤跟着做就行。
+>
+> **当前线上环境**：域名 `gaugetheory.angly.cn`，服务器 IP `150.158.103.51`，项目路径 `/home/ubuntu/qft-course/`。
 
 ## 前置准备：去腾讯云确认什么信息
 
@@ -54,10 +56,10 @@
 
 ```bash
 # 在本地终端执行（macOS 自带 ssh）
-ssh root@你的服务器IP
+ssh ubuntu@你的服务器IP
 
 # 首次连接会问 yes/no，输入 yes
-# 然后输入 root 密码
+# 然后输入密码
 ```
 
 ### 第二步：系统更新
@@ -99,8 +101,8 @@ GRANT ALL PRIVILEGES ON DATABASE qft_course TO qft_user;
 
 ```bash
 # 创建项目目录
-mkdir -p /opt/qft-course
-cd /opt/qft-course
+mkdir -p /home/ubuntu/qft-course
+cd /home/ubuntu/qft-course
 
 # 克隆代码（用 HTTPS 方式，或配置 SSH key）
 git clone https://github.com/your-username/qft-course.git .
@@ -139,7 +141,7 @@ DB_PASSWORD=你的数据库密码
 DB_HOST=localhost
 DB_PORT=5432
 
-MEDIA_ROOT=/opt/qft-course/media/
+MEDIA_ROOT=/home/ubuntu/qft-course/media/
 ```
 
 生成 SECRET_KEY：
@@ -180,11 +182,11 @@ Description=Gunicorn daemon for QFT Course
 After=network.target postgresql.service
 
 [Service]
-User=root
-Group=root
-WorkingDirectory=/opt/qft-course
-ExecStart=/opt/qft-course/venv/bin/gunicorn \
-    --bind 127.0.0.1:8000 \
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/qft-course
+ExecStart=/home/ubuntu/qft-course/venv/bin/gunicorn \
+    --bind 127.0.0.1:8001 \
     --workers 3 \
     config.wsgi:application
 Restart=always
@@ -220,20 +222,20 @@ server {
 
     # 静态文件
     location /static/ {
-        alias /opt/qft-course/staticfiles/;
+        alias /home/ubuntu/qft-course/staticfiles/;
         expires 30d;
     }
 
     # 上传文件（PDF 等）
     location /media/ {
-        alias /opt/qft-course/media/;
+        alias /home/ubuntu/qft-course/media/;
         # ⚠️ 重要：Nginx 也需要设置上传大小限制，否则 20MB 以上的文件会被拦截
         client_max_body_size 25M;
     }
 
     # 动态请求转发给 Gunicorn
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -246,7 +248,7 @@ server {
 
 ```bash
 ln -s /etc/nginx/sites-available/qft-course /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/default   # 删除默认配置
+rm /etc/nginx/sites-enabled/default   # 删除默认配置（如存在）
 
 # 测试配置是否正确
 nginx -t
@@ -307,7 +309,7 @@ systemctl restart qft-course
 systemctl reload nginx
 
 # 更新代码
-cd /opt/qft-course
+cd /home/ubuntu/qft-course
 git pull
 source venv/bin/activate
 pip install -r requirements.txt

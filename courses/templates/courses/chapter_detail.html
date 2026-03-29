@@ -8,8 +8,8 @@
     /* Markdown 内容排版样式 */
     .markdown-body { line-height: 1.8; color: #374151; }
     .markdown-body h1 { font-size: 1.75rem; font-weight: 700; margin: 1.5em 0 0.5em; color: #111827; }
-    .markdown-body h2 { font-size: 1.5rem; font-weight: 600; margin: 1.5em 0 0.5em; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
-    .markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin: 1.25em 0 0.5em; color: #1f2937; }
+    .markdown-body h2 { font-size: 1.5rem; font-weight: 600; margin: 1.5em 0 0.5em; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; scroll-margin-top: 5rem; }
+    .markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin: 1.25em 0 0.5em; color: #1f2937; scroll-margin-top: 5rem; }
     .markdown-body p { margin: 0.75em 0; }
     .markdown-body ul, .markdown-body ol { margin: 0.75em 0; padding-left: 2em; }
     .markdown-body li { margin: 0.25em 0; }
@@ -23,73 +23,304 @@
     .markdown-body a { color: #2563eb; text-decoration: underline; }
     .markdown-body img { max-width: 100%; border-radius: 0.5rem; margin: 1em 0; }
     .markdown-body hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5em 0; }
+
+    /* 平滑滚动 */
+    html { scroll-behavior: smooth; }
+
+    /* 侧边栏目录 */
+    .sidebar-toc {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+    }
+    .sidebar-toc::-webkit-scrollbar { width: 4px; }
+    .sidebar-toc::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-toc::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+    /* 目录项高亮过渡 */
+    .toc-item {
+        transition: all 0.15s ease;
+    }
+    .toc-item.active {
+        color: #1d4ed8;
+        background: #eff6ff;
+        border-left-color: #3b82f6;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8">
-    {# 面包屑 #}
-    <div class="mb-6">
-        <a href="{% url 'courses:home' %}" class="text-primary-600 hover:text-primary-700 text-sm">首页</a>
-        <span class="text-gray-300 mx-2">/</span>
-        <a href="{% url 'courses:semester_home' semester.slug %}" class="text-primary-600 hover:text-primary-700 text-sm">{{ semester.name }}</a>
-        <span class="text-gray-300 mx-2">/</span>
-        <span class="text-gray-500 text-sm">{{ chapter.title }}</span>
-    </div>
+{# ─── 整体布局：左侧目录 + 右侧正文 ─── #}
+<div x-data="chapterPage()" class="min-h-screen">
 
-    {# 草稿预览提示 #}
-    {% if is_draft_preview %}
-    <div class="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-        ⚠️ 你正在以教师身份预览草稿章节。学生和助教无法看到此内容。
-    </div>
-    {% endif %}
-
-    {# 章节标题 #}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-10 mb-6">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">{{ chapter.title }}</h1>
-
-        {# Markdown 正文 #}
-        {% if chapter.content %}
-        <div class="markdown-body">
-            {{ chapter.content|markdown }}
+    {# ─── 顶部面包屑 + 手机端目录按钮 ─── #}
+    <div class="sticky top-0 z-30 bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm min-w-0">
+                <a href="{% url 'courses:home' %}" class="text-primary-600 hover:text-primary-700 shrink-0">首页</a>
+                <span class="text-gray-300">/</span>
+                <a href="{% url 'courses:semester_home' semester.slug %}" class="text-primary-600 hover:text-primary-700 shrink-0">{{ semester.name }}</a>
+                <span class="text-gray-300 shrink-0">/</span>
+                <span class="text-gray-500 truncate">{{ chapter.title }}</span>
+            </div>
+            {# 手机端：目录按钮 #}
+            <button @click="drawerOpen = true" class="lg:hidden flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                目录
+            </button>
+            {# 桌面端：收缩按钮 #}
+            <button @click="sidebarOpen = !sidebarOpen" class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition">
+                <svg class="w-4 h-4" :class="sidebarOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 0.2s"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+                <span x-text="sidebarOpen ? '收起' : '目录'"></span>
+            </button>
         </div>
-        {% else %}
-        <p class="text-gray-400">暂无内容。</p>
-        {% endif %}
     </div>
 
-    {# 上下章导航 #}
-    <div class="flex items-center justify-between gap-4">
-        {% if prev_chapter %}
-        <a href="{% url 'courses:chapter_detail' semester.slug prev_chapter.slug %}"
-           class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group">
-            <span class="text-xs text-gray-400">上一章</span>
-            <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
-                {{ prev_chapter.title }}
-            </div>
-        </a>
-        {% else %}
-        <div class="flex-1"></div>
-        {% endif %}
-
-        {% if next_chapter %}
-        <a href="{% url 'courses:chapter_detail' semester.slug next_chapter.slug %}"
-           class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group text-right">
-            <span class="text-xs text-gray-400">下一章</span>
-            <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
-                {{ next_chapter.title }}
-            </div>
-        </a>
-        {% else %}
-        <div class="flex-1"></div>
-        {% endif %}
+    {# ─── 手机端抽屉遮罩 ─── #}
+    <div x-show="drawerOpen"
+         x-transition:enter="transition-opacity duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="drawerOpen = false"
+         class="fixed inset-0 z-40 bg-black/30 lg:hidden">
     </div>
 
-    {# 返回学期页 #}
-    <div class="mt-6 text-center">
-        <a href="{% url 'courses:semester_home' semester.slug %}" class="text-sm text-gray-400 hover:text-primary-600">
-            ← 返回 {{ semester.name }}
-        </a>
+    {# ─── 主内容区 ─── #}
+    <div class="max-w-7xl mx-auto px-4 py-6 flex gap-8">
+
+        {# ─── 左侧：章节目录（桌面端 inline，手机端 drawer） ─── #}
+        {# 桌面端侧边栏 #}
+        <aside x-show="sidebarOpen"
+               x-transition:enter="transition-all duration-200"
+               x-transition:enter-start="-translate-x-4 opacity-0"
+               x-transition:enter-end="translate-x-0 opacity-100"
+               x-transition:leave="transition-all duration-150"
+               x-transition:leave-start="translate-x-0 opacity-100"
+               x-transition:leave-end="-translate-x-4 opacity-0"
+               class="hidden lg:block w-64 shrink-0"
+               style="position: sticky; top: 5rem; align-self: flex-start; max-height: calc(100vh - 6rem);">
+
+            <nav class="sidebar-toc overflow-y-auto pr-2 pb-8">
+                {# 学期章节列表 #}
+                <div class="mb-4">
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-primary-600 uppercase tracking-wider">{{ semester.name }}</a>
+                </div>
+
+                {% for ch in chapter_list %}
+                {% if ch.pk == chapter.pk %}
+                {# 当前章节 — 展开子目录 #}
+                <div class="mb-1">
+                    <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}"
+                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg border-l-3 border-primary-500">
+                        {{ ch.title }}
+                    </a>
+                    {# 子目录（H2/H3） #}
+                    {% if toc_list %}
+                    <div class="ml-3 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
+                        {% for item in toc_list %}
+                        <a href="#{{ item.id }}"
+                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-primary-600 rounded-r-md border-l-2 border-transparent"
+                           :class="activeHeading === '{{ item.id }}' && 'active'">
+                            {% if item.level == 3 %}<span class="text-gray-300 mr-1">·</span>{% endif %}
+                            {{ item.title }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                {# 其他章节 — 纯链接 #}
+                <div class="mb-1">
+                    <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}"
+                       class="block px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition truncate">
+                        {{ ch.title }}
+                    </a>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </nav>
+        </aside>
+
+        {# 手机端抽屉 #}
+        <aside x-show="drawerOpen"
+               x-transition:enter="transition-transform duration-200"
+               x-transition:enter-start="-translate-x-full"
+               x-transition:enter-end="translate-x-0"
+               x-transition:leave="transition-transform duration-150"
+               x-transition:leave-start="translate-x-0"
+               x-transition:leave-end="-translate-x-full"
+               class="fixed top-0 left-0 z-50 w-72 h-full bg-white shadow-2xl overflow-y-auto lg:hidden">
+
+            <div class="flex items-center justify-between px-4 h-14 border-b border-gray-100">
+                <span class="text-sm font-medium text-gray-700">章节目录</span>
+                <button @click="drawerOpen = false" class="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <nav class="p-4">
+                <div class="mb-4">
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-primary-600 uppercase tracking-wider">{{ semester.name }}</a>
+                </div>
+
+                {% for ch in chapter_list %}
+                {% if ch.pk == chapter.pk %}
+                <div class="mb-1">
+                    <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}" @click="drawerOpen = false"
+                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg border-l-3 border-primary-500">
+                        {{ ch.title }}
+                    </a>
+                    {% if toc_list %}
+                    <div class="ml-3 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
+                        {% for item in toc_list %}
+                        <a href="#{{ item.id }}" @click="drawerOpen = false"
+                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-primary-600 rounded-r-md border-l-2 border-transparent">
+                            {% if item.level == 3 %}<span class="text-gray-300 mr-1">·</span>{% endif %}
+                            {{ item.title }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="mb-1">
+                    <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}" @click="drawerOpen = false"
+                       class="block px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition truncate">
+                        {{ ch.title }}
+                    </a>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </nav>
+        </aside>
+
+        {# ─── 右侧：正文区 ─── #}
+        <main class="flex-1 min-w-0">
+            <div class="max-w-4xl">
+
+                {# 草稿预览提示 #}
+                {% if is_draft_preview %}
+                <div class="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+                    ⚠️ 你正在以教师身份预览草稿章节。学生和助教无法看到此内容。
+                </div>
+                {% endif %}
+
+                {# 章节标题 + 讲义下载 #}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-10 mb-6">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">{{ chapter.title }}</h1>
+
+                    {# 讲义下载入口 #}
+                    {% if chapter.lecture_pdf and is_logged_in %}
+                    <a href="{% url 'courses:download_lecture' chapter.pk %}"
+                       class="flex items-center gap-3 mb-6 px-5 py-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition group">
+                        <svg class="w-6 h-6 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3"/></svg>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-blue-800">本章讲义</div>
+                            <div class="text-xs text-blue-600 mt-0.5">{{ chapter.lecture_pdf_filename }}</div>
+                        </div>
+                        <svg class="w-4 h-4 text-blue-400 group-hover:text-blue-600 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+                    </a>
+                    {% endif %}
+
+                    {# Markdown 正文 #}
+                    {% if chapter.content %}
+                    <div class="markdown-body" x-ref="markdownBody">
+                        {{ chapter.content|markdown|inject_heading_ids }}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-400">暂无内容。</p>
+                    {% endif %}
+                </div>
+
+                {# 上下章导航 #}
+                <div class="flex items-center justify-between gap-4">
+                    {% if prev_chapter %}
+                    <a href="{% url 'courses:chapter_detail' semester.slug prev_chapter.slug %}"
+                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group">
+                        <span class="text-xs text-gray-400">上一章</span>
+                        <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
+                            {{ prev_chapter.title }}
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="flex-1"></div>
+                    {% endif %}
+
+                    {% if next_chapter %}
+                    <a href="{% url 'courses:chapter_detail' semester.slug next_chapter.slug %}"
+                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group text-right">
+                        <span class="text-xs text-gray-400">下一章</span>
+                        <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
+                            {{ next_chapter.title }}
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="flex-1"></div>
+                    {% endif %}
+                </div>
+
+                {# 返回学期页 #}
+                <div class="mt-6 text-center">
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-sm text-gray-400 hover:text-primary-600">
+                        ← 返回 {{ semester.name }}
+                    </a>
+                </div>
+            </div>
+        </main>
     </div>
 </div>
+
+{# ─── Alpine.js: 滚动高亮 + 侧边栏/抽屉状态 ─── #}
+<script>
+function chapterPage() {
+    return {
+        sidebarOpen: window.innerWidth >= 1024,
+        drawerOpen: false,
+        activeHeading: '',
+
+        init() {
+            // 监听窗口宽度变化，自动切换侧边栏
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1024) {
+                    this.drawerOpen = false;
+                }
+            });
+
+            // IntersectionObserver 滚动高亮
+            this.$nextTick(() => {
+                const body = this.$refs.markdownBody;
+                if (!body) return;
+
+                const headings = body.querySelectorAll('h2[id], h3[id]');
+                if (headings.length === 0) return;
+
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        // 找到最近可见的标题
+                        let best = null;
+                        let bestRatio = 0;
+                        for (const entry of entries) {
+                            if (entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+                                best = entry.target;
+                                bestRatio = entry.intersectionRatio;
+                            }
+                        }
+                        if (best) {
+                            this.activeHeading = best.id;
+                        }
+                    },
+                    {
+                        rootMargin: '-80px 0px -70% 0px',
+                        threshold: [0, 0.25, 0.5, 1],
+                    }
+                );
+
+                headings.forEach(h => observer.observe(h));
+            });
+        }
+    };
+}
+</script>
 {% endblock %}

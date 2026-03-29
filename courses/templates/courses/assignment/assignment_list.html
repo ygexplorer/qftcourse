@@ -38,7 +38,7 @@
                     </p>
                     {% endif %}
 
-                    {# 学生：提交状态 #}
+                    {# 学生：提交状态 + 分数 #}
                     {% if role == 'student' and hw.is_published %}
                     <div class="mt-2">
                         {% with sub=user_submissions|get_item:hw.pk %}
@@ -47,6 +47,11 @@
                                 {% if sub.is_late %}⚠️ 逾期提交{% else %}✅ 已提交{% endif %}
                                 — {{ sub.created_at|date:"m-d H:i" }}
                             </span>
+                            {% if sub.score is not None %}
+                            <span class="text-xs ml-1 font-medium {% if sub.score >= 60 %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} px-2 py-0.5 rounded-full">
+                                📊 {{ sub.score }}分
+                            </span>
+                            {% endif %}
                         {% elif hw.due_date and now > hw.due_date %}
                             <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">❌ 已逾期未提交</span>
                         {% else %}
@@ -56,12 +61,13 @@
                     </div>
                     {% endif %}
 
-                    {# TA/教师：提交人数 #}
+                    {# TA/教师：提交人数 → 链接到评分工作台 #}
                     {% if role != 'student' %}
                     <div class="mt-2">
-                        <span class="text-xs text-gray-400">
-                            {{ hw.submission_count }} 份提交
-                        </span>
+                        <a href="{% url 'courses:grading_workstation' hw.pk %}"
+                           class="text-xs text-primary-600 hover:text-primary-700 hover:underline">
+                            {{ hw.submission_count }} 份提交 → 评分工作台
+                        </a>
                     </div>
                     {% endif %}
                 </div>

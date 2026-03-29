@@ -12,6 +12,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('password-change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
+    path('profile/', views.profile_edit, name='profile_edit'),
 
     # 通用仪表盘入口（根据角色跳转）
     path('dashboard/', views.dashboard, name='dashboard'),

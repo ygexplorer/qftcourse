@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:accounts_user_changelist' %}">用户</a>
+&rsaquo; 批量导入学生
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>批量导入学生</h1>
+
+<div id="content-main" style="max-width: 600px;">
+    <div class="module">
+        <h2>上传选课单</h2>
+
+        <p style="margin-bottom: 16px; color: #666;">
+            上传包含学生信息的 Excel 文件（.xls / .xlsx），系统将自动创建学生账号。
+        </p>
+
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #92400e; font-size: 13px;">
+                <strong>📋 要求：</strong>
+                Excel 必须包含 <code>学号</code> 和 <code>姓名</code> 两列。
+                导入后用户名 = 学号，初始密码 = 学号后 6 位。
+                已存在的学号会自动跳过。
+            </p>
+        </div>
+
+        {% if form.errors %}
+        <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+            {% for field in form %}
+                {% for error in field.errors %}
+                <p style="margin: 4px 0; color: #991b1b; font-size: 13px;">{{ field.label }}：{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" style="margin-top: 16px;">
+            {% csrf_token %}
+
+            <fieldset class="module aligned">
+                <div class="form-row field-excel_file">
+                    <div>
+                        <label for="id_excel_file">{{ form.excel_file.label }}:</label>
+                        <div class="related-widget-wrapper">
+                            <input type="file" name="excel_file" accept=".xls,.xlsx" id="id_excel_file" required>
+                        </div>
+                        <div class="help">{{ form.excel_file.help_text }}</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="submit-row">
+                <input type="submit" value="开始导入" class="default" style="background: #417690;">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

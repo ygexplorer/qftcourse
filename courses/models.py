@@ -60,6 +60,15 @@ class Announcement(TimeStampedModel):
         return f"[{self.semester.name}] {self.title}"
 
 
+def chapter_lecture_path(instance, filename):
+    """
+    章节讲义 PDF 上传路径：lectures/ch{章节id}/原始文件名.pdf
+    保留原始文件名，每章一个子目录避免同名冲突。
+    """
+    safe_name = filename.replace('\\', '/').split('/')[-1]
+    return f'lectures/ch{instance.pk}/{safe_name}'
+
+
 class Chapter(TimeStampedModel):
     """课程章节"""
 
@@ -76,6 +85,11 @@ class Chapter(TimeStampedModel):
     slug = models.SlugField('URL 标识', max_length=100, blank=True, default='')
     content = models.TextField('Markdown 内容', blank=True, default='')
     is_published = models.BooleanField('已发布', default=False)
+    lecture_pdf = models.FileField(
+        '讲义 PDF', upload_to=chapter_lecture_path,
+        blank=True, default='',
+        help_text='本章主讲义 PDF 文件（仅支持 PDF，不超过 20MB）',
+    )
 
     class Meta:
         db_table = 'chapters'
@@ -86,6 +100,13 @@ class Chapter(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def lecture_pdf_filename(self):
+        """返回讲义 PDF 的原始文件名"""
+        if self.lecture_pdf:
+            return self.lecture_pdf.name.split('/')[-1]
+        return ''
 
 
 # ──────────────────────────────────────────
@@ -181,6 +202,14 @@ class Submission(TimeStampedModel):
     late_reason = models.TextField('逾期原因', blank=True, default='')
     score = models.IntegerField('评分', null=True, blank=True)
     feedback = models.TextField('评语', blank=True, default='')
+    scored_at = models.DateTimeField('评分时间', null=True, blank=True)
+    scored_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name='评分人',
+        limit_choices_to={'role__in': ['teacher', 'ta']},
+        related_name='graded_submissions',
+    )
 
     class Meta:
         db_table = 'submissions'

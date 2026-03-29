@@ -48,12 +48,26 @@ class AnnouncementAdmin(TeacherAdminMixin, admin.ModelAdmin):
 
 @admin.register(Chapter)
 class ChapterAdmin(TeacherAdminMixin, admin.ModelAdmin):
-    list_display = ('title', 'semester', 'order_index', 'is_published', 'created_at')
+    list_display = ('title', 'semester', 'order_index', 'is_published', 'has_lecture', 'created_at')
     list_filter = ('semester', 'is_published')
     list_editable = ('order_index', 'is_published')
     search_fields = ('title',)
     prepopulated_fields = {'slug': ('title',)}
     list_per_page = 50
+
+    fieldsets = (
+        ('基本信息', {
+            'fields': ('semester', 'author', 'title', 'slug', 'is_published', 'order_index')
+        }),
+        ('章节内容', {
+            'fields': ('content', 'lecture_pdf'),
+            'description': '章节内容使用 Markdown 编写。讲义 PDF 仅支持 PDF 格式，大小不超过 20MB。',
+        }),
+    )
+
+    @admin.display(boolean=True, description='有讲义')
+    def has_lecture(self, obj):
+        return bool(obj.lecture_pdf)
 
 
 @admin.register(Assignment)
@@ -82,7 +96,7 @@ class AssignmentAdmin(TeacherAdminMixin, admin.ModelAdmin):
 
 @admin.register(Submission)
 class SubmissionAdmin(TeacherAdminMixin, admin.ModelAdmin):
-    list_display = ('student', 'assignment', 'file_name', 'is_late', 'file_size_display', 'created_at')
+    list_display = ('student', 'assignment', 'file_name', 'is_late', 'score_display', 'scored_by_display', 'file_size_display', 'created_at')
     list_filter = ('assignment', 'is_late')
     search_fields = ('student__username', 'student__display_name', 'student__student_id')
     readonly_fields = ('file_name', 'file_size', 'created_at', 'is_late')
@@ -101,3 +115,15 @@ class SubmissionAdmin(TeacherAdminMixin, admin.ModelAdmin):
     def file_size_display(self, obj):
         from .utils import format_file_size
         return format_file_size(obj.file_size)
+
+    @admin.display(description='评分')
+    def score_display(self, obj):
+        if obj.score is not None:
+            return f'{obj.score} 分'
+        return '-'
+
+    @admin.display(description='评分人')
+    def scored_by_display(self, obj):
+        if obj.scored_by:
+            return obj.scored_by.display_name or obj.scored_by.username
+        return '-'

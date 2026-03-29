@@ -5,7 +5,10 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from accounts.views import import_students_view
+
 urlpatterns = [
+    path('admin/import-students/', admin.site.admin_view(import_students_view), name='import_students'),
     path('admin/', admin.site.urls),
     path('', include('courses.urls')),
     path('accounts/', include('accounts.urls')),
