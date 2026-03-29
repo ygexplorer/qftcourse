@@ -19,6 +19,7 @@ python-dotenv==1.2.2
 # Excel 文件读取（学生批量导入）
 pandas>=2.0
 openpyxl>=3.1
+xlrd>=2.0
 
 # 生产数据库驱动（PostgreSQL）
 # 本地开发用 SQLite，不需要此包
