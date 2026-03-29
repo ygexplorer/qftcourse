@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load markdown_tags %}
+
+{% block title %}{{ semester.name }} — 规范场课程{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    {# 面包屑 #}
+    <a href="{% url 'courses:home' %}" class="text-primary-600 hover:text-primary-700 text-sm mb-4 inline-block">&larr; 返回首页</a>
+
+    {# 学期标题 #}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ semester.name }}</h1>
+        {% if semester.start_date and semester.end_date %}
+        <p class="text-gray-400 text-sm">{{ semester.start_date|date:"Y-m-d" }} ~ {{ semester.end_date|date:"Y-m-d" }}</p>
+        {% endif %}
+    </div>
+
+    {# 章节列表 #}
+    {% if chapters %}
+    <div class="space-y-3">
+        {% for chapter in chapters %}
+        <a href="{% url 'courses:chapter_detail' semester.slug chapter.slug %}"
+           class="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition group">
+            <div class="flex items-start gap-4">
+                {# 序号 #}
+                <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-primary-50 text-primary-600 text-sm font-bold flex items-center justify-center">
+                    {{ chapter.order_index }}
+                </span>
+                {# 标题和摘要 #}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-semibold text-gray-800 group-hover:text-primary-700 truncate">
+                            {{ chapter.title }}
+                        </h3>
+                        {% if not chapter.is_published %}
+                        <span class="flex-shrink-0 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">草稿</span>
+                        {% endif %}
+                    </div>
+                    {% if chapter.content %}
+                    <p class="text-sm text-gray-400 mt-1 line-clamp-2">{{ chapter.content|markdown|striptags|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
+                {# 箭头 #}
+                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-400">
+        暂无章节内容。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

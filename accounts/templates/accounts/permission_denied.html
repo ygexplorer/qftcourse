@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}权限不足 - 规范场课程{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-12">
+    <div class="text-center max-w-md">
+        {# 锁图标 #}
+        <div class="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+        </div>
+
+        <h1 class="text-2xl font-bold text-gray-900 mb-3">权限不足</h1>
+        <p class="text-gray-500 mb-8">
+            你当前的角色（<span class="font-medium text-gray-700">{{ user.get_role_display }}</span>）
+            没有权限访问该页面。如需权限，请联系课程教师或管理员。
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'courses:home' %}"
+               class="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition">
+                返回首页
+            </a>
+            {% if user.is_student %}
+            <a href="{% url 'courses:assignment_list' %}"
+               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
+                我的作业
+            </a>
+            {% elif user.is_ta %}
+            <a href="{% url 'accounts:ta_dashboard' %}"
+               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
+                助教工作台
+            </a>
+            {% elif user.is_teacher %}
+            <a href="{% url 'accounts:teacher_dashboard' %}"
+               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
+                教学管理
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}助教工作台 - 规范场课程{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">助教工作台</h1>
+    <p class="text-gray-500 mb-8">欢迎回来，{{ user.display_name|default:user.username }}</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {# 查看作业提交 #}
+        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h2 class="font-semibold text-gray-900 mb-1">查看作业提交</h2>
+            <p class="text-sm text-gray-500">查看所有学生的作业提交情况</p>
+            <a href="{% url 'courses:assignment_list' %}" class="inline-block mt-3 text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded hover:bg-primary-100 transition">
+                查看作业 →
+            </a>
+        </div>
+
+        {# 课程内容 #}
+        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <h2 class="font-semibold text-gray-900 mb-1">课程内容</h2>
+            <p class="text-sm text-gray-500">浏览已发布的章节和资料</p>
+            <a href="{% url 'courses:home' %}" class="inline-block mt-3 text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded hover:bg-primary-100 transition">
+                前往课程 →
+            </a>
+        </div>
+    </div>
+
+    {# 权限说明 #}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+        <h3 class="font-semibold text-amber-800 mb-2">你的权限</h3>
+        <ul class="text-sm text-amber-700 space-y-1">
+            <li>✅ 查看课程内容和公告</li>
+            <li>✅ 查看所有学生的作业提交</li>
+            <li>✅ 下载学生提交的作业文件</li>
+            <li>✅ 为作业评分</li>
+            <li class="text-amber-600">🔒 不可发布作业（需教师操作）</li>
+            <li class="text-amber-600">🔒 不可修改课程内容（需教师操作）</li>
+            <li class="text-amber-600">🔒 不可管理用户账号（需教师或管理员操作）</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}规范场课程{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js CDN（轻量交互） -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    {# ── 导航栏 ── #}
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            {# Logo / 课程名 #}
+            <a href="{% url 'courses:home' %}" class="text-xl font-bold text-primary-700 tracking-wide">
+                规范场课程
+            </a>
+
+            {# 桌面端导航 #}
+            <div class="hidden md:flex items-center gap-6">
+                {% if user.is_authenticated %}
+                    {% if user.is_teacher %}
+                        <a href="{% url 'accounts:teacher_dashboard' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">教学管理</a>
+                    {% elif user.is_ta %}
+                        <a href="{% url 'accounts:ta_dashboard' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">助教工作台</a>
+                    {% else %}
+                        <a href="{% url 'courses:assignment_list' %}" class="text-gray-600 hover:text-primary-600 text-sm font-medium">我的作业</a>
+                    {% endif %}
+                    <span class="text-gray-400">|</span>
+                    <span class="text-sm text-gray-500">{{ user.display_name|default:user.username }}
+                        <span class="text-xs text-gray-400">({{ user.get_role_display }})</span>
+                    </span>
+                    <a href="{% url 'accounts:password_change' %}" class="text-sm text-gray-500 hover:text-primary-600">修改密码</a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-sm text-red-500 hover:text-red-600 cursor-pointer bg-transparent border-none p-0">退出</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="text-sm text-gray-600 hover:text-primary-600 font-medium">登录</a>
+                    <a href="{% url 'accounts:register' %}" class="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">注册</a>
+                {% endif %}
+            </div>
+
+            {# 手机端菜单按钮 #}
+            <button class="md:hidden p-2" @click="open = !open" aria-label="菜单">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path x-show="open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {# 手机端下拉菜单 #}
+        <div x-show="open" @click.away="open = false" x-cloak
+             class="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-3">
+            {% if user.is_authenticated %}
+                {% if user.is_teacher %}
+                    <a href="{% url 'accounts:teacher_dashboard' %}" class="block text-gray-600 text-sm">教学管理</a>
+                {% elif user.is_ta %}
+                    <a href="{% url 'accounts:ta_dashboard' %}" class="block text-gray-600 text-sm">助教工作台</a>
+                {% else %}
+                    <a href="{% url 'courses:assignment_list' %}" class="block text-gray-600 text-sm">我的作业</a>
+                {% endif %}
+                <a href="{% url 'accounts:password_change' %}" class="block text-gray-500 text-sm">修改密码</a>
+                <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
+                    {% csrf_token %}
+                    <button type="submit" class="block w-full text-left text-red-500 text-sm cursor-pointer bg-transparent border-none p-0">退出登录</button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="block text-gray-600 text-sm">登录</a>
+                <a href="{% url 'accounts:register' %}" class="block text-primary-600 text-sm font-medium">注册</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {# ── Django 消息提示 ── #}
+    {% if messages %}
+    <div class="max-w-6xl mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div class="mb-2 px-4 py-3 rounded-lg text-sm
+            {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── 主内容 ── #}
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# ── 页脚 ── #}
+    <footer class="bg-white border-t border-gray-200 py-6 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-400">
+            规范场课程 &copy; 2026
+        </div>
+    </footer>
+
+    {# x-cloak 隐藏未加载时的闪烁 #}
+    <style>[x-cloak] { display: none !important; }</style>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

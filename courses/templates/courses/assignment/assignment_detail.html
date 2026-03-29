@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load markdown_tags %}
+
+{% block title %}{{ assignment.title }} — 规范场课程{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    {# 面包屑 #}
+    <a href="{% url 'courses:assignment_list' %}" class="text-primary-600 hover:text-primary-700 text-sm mb-4 inline-block">&larr; 返回作业列表</a>
+
+    {# 作业信息卡片 #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-3">{{ assignment.title }}</h1>
+
+        <div class="flex flex-wrap gap-3 text-sm text-gray-400 mb-4">
+            <span>{{ assignment.semester.name }}</span>
+            {% if assignment.due_date %}
+            <span>· 截止：{{ assignment.due_date|date:"Y-m-d H:i" }}</span>
+                {% if now > assignment.due_date %}
+                <span class="text-red-500 font-medium">（已截止）</span>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        {# 作业说明 #}
+        {% if assignment.description %}
+        <div class="prose max-w-none text-gray-600 leading-relaxed mb-4">
+            {{ assignment.description|linebreaks }}
+        </div>
+        {% endif %}
+
+        {# 作业附件下载 #}
+        {% if assignment.attachment %}
+        <a href="{% url 'courses:download_attachment' assignment.pk %}"
+           class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            下载作业附件 PDF
+        </a>
+        {% endif %}
+    </div>
+
+    {# ═══════════ 学生视图 ═══════════ #}
+    {% if role == 'student' %}
+
+        {# 已有提交 → 显示提交记录 #}
+        {% if submission %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">我的提交</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-4">
+                <div>
+                    <span class="text-gray-400">提交时间</span>
+                    <p class="text-gray-700">{{ submission.created_at|date:"Y-m-d H:i" }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">文件</span>
+                    <a href="{% url 'courses:download_submission' submission.pk %}"
+                       class="text-primary-600 hover:text-primary-700 hover:underline">
+                        {{ submission.file_name }}
+                    </a>
+                    <span class="text-gray-300 ml-1">({{ submission.file_size|filesize }})</span>
+                </div>
+                <div>
+                    <span class="text-gray-400">状态</span>
+                    {% if submission.is_late %}
+                    <span class="text-red-500 font-medium">逾期提交</span>
+                    {% else %}
+                    <span class="text-green-600">按时提交</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if submission.message %}
+            <div class="text-sm text-gray-600 mb-3">
+                <span class="text-gray-400">留言：</span>{{ submission.message|linebreaks }}
+            </div>
+            {% endif %}
+            {% if submission.is_late and submission.late_reason %}
+            <div class="text-sm bg-red-50 border border-red-100 rounded-lg p-3">
+                <span class="text-red-400">逾期原因：</span>
+                <span class="text-red-700">{{ submission.late_reason|linebreaks }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# 提交表单 #}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                {% if submission %}重新提交{% else %}提交作业{% endif %}
+            </h2>
+
+            {% if submission %}
+            <div class="mb-4 text-sm text-orange-600 bg-orange-50 border border-orange-200 rounded-lg p-3">
+                ⚠️ 重新提交将覆盖之前的提交记录和文件。
+            </div>
+            {% endif %}
+
+            {% if is_late %}
+            <div class="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                ⚠️ 当前已超过截止时间，提交将被标记为逾期。请务必填写逾期原因。
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {# 文件上传 #}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.file.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="{{ form.file.name }}" accept=".pdf,application/pdf"
+                           id="submission-file"
+                           onchange="validateFileInput(this)"
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 file:cursor-pointer file:transition">
+                    <p class="mt-1 text-xs text-gray-400">仅支持 PDF 格式，文件大小不超过 20MB</p>
+                    {% if form.file.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.file.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                {# 留言 #}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.message.label }}</label>
+                    {{ form.message }}
+                    {% if form.message.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.message.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                {# 逾期原因（仅逾期时显示） #}
+                {% if is_late %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-red-700 mb-1">{{ form.late_reason.label }} <span class="text-red-500">*</span></label>
+                    {{ form.late_reason }}
+                    {% if form.late_reason.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.late_reason.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <button type="submit"
+                        class="w-full sm:w-auto bg-primary-600 text-white px-6 py-2.5 rounded-lg hover:bg-primary-700 transition font-medium">
+                    {% if submission %}确认重新提交{% else %}提交作业{% endif %}
+                </button>
+            </form>
+        </div>
+
+    {# ═══════════ TA/教师视图 ═══════════ #}
+    {% else %}
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">提交记录（{{ submissions|length }} 份）</h2>
+
+            {% if submissions %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">学生</th>
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">学号</th>
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">提交时间</th>
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">状态</th>
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">文件</th>
+                            <th class="text-left py-3 px-2 text-gray-500 font-medium">留言</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in submissions %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 px-2">
+                                <span class="text-gray-800">{{ sub.student.display_name|default:sub.student.username }}</span>
+                            </td>
+                            <td class="py-3 px-2 text-gray-400">{{ sub.student.student_id|default:"-" }}</td>
+                            <td class="py-3 px-2 text-gray-500">{{ sub.created_at|date:"m-d H:i" }}</td>
+                            <td class="py-3 px-2">
+                                {% if sub.is_late %}
+                                <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">逾期</span>
+                                {% else %}
+                                <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">按时</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-2">
+                                {% if sub.file %}
+                                <a href="{% url 'courses:download_submission' sub.pk %}"
+                                   class="text-primary-600 hover:text-primary-700 hover:underline">
+                                    {{ sub.file_name }}
+                                </a>
+                                <span class="text-gray-300 ml-1">({{ sub.file_size|filesize }})</span>
+                                {% else %}
+                                <span class="text-gray-300">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-2 text-gray-500 max-w-[200px] truncate">
+                                {% if sub.message %}{{ sub.message }}{% endif %}
+                                {% if sub.is_late and sub.late_reason %}
+                                <div class="text-red-400 text-xs mt-1" title="{{ sub.late_reason }}">
+                                    逾期原因：{{ sub.late_reason|truncatechars:30 }}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-400 text-center py-8">暂无学生提交。</p>
+            {% endif %}
+        </div>
+
+    {% endif %}
+</div>
+
+<script>
+// 前端文件校验：PDF 格式 + 20MB 大小限制
+function validateFileInput(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // 校验扩展名
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('只支持 PDF 文件，请重新选择。');
+        input.value = '';
+        return;
+    }
+
+    // 校验大小（20MB）
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        alert('文件大小（' + sizeMB + 'MB）超过 20MB 限制，请压缩后重新上传。');
+        input.value = '';
+        return;
+    }
+
+    // 校验空文件
+    if (file.size === 0) {
+        alert('文件为空，请检查后重新选择。');
+        input.value = '';
+        return;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}教学管理 - 规范场课程{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">教学管理</h1>
+    <p class="text-gray-500 mb-8">欢迎回来，{{ user.display_name|default:user.username }} 老师</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {# 课程管理 #}
+        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <h2 class="font-semibold text-gray-900 mb-1">课程管理</h2>
+            <p class="text-sm text-gray-500">管理学期、章节内容</p>
+            <a href="/admin/courses/" class="inline-block mt-3 text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded hover:bg-primary-100 transition">
+                前往 Django Admin →
+            </a>
+        </div>
+
+        {# 用户管理 #}
+        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+            </div>
+            <h2 class="font-semibold text-gray-900 mb-1">用户管理</h2>
+            <p class="text-sm text-gray-500">创建学生和助教账号</p>
+            <a href="/admin/accounts/user/" class="inline-block mt-3 text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded hover:bg-primary-100 transition">
+                前往 Django Admin →
+            </a>
+        </div>
+
+        {# 作业管理 #}
+        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h2 class="font-semibold text-gray-900 mb-1">作业管理</h2>
+            <p class="text-sm text-gray-500">发布作业、查看提交</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <a href="{% url 'courses:assignment_list' %}" class="text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded hover:bg-primary-100 transition">
+                    查看作业 →
+                </a>
+                <a href="/admin/courses/assignment/add/" class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200 transition">
+                    发布新作业（Admin）
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# 权限说明 #}
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="font-semibold text-blue-800 mb-2">你的权限</h3>
+        <ul class="text-sm text-blue-700 space-y-1">
+            <li>✅ 管理学期和章节内容（Django Admin）</li>
+            <li>✅ 预览未发布的草稿章节</li>
+            <li>✅ 发布和管理作业</li>
+            <li>✅ 查看和下载所有学生提交</li>
+            <li>✅ 为作业评分</li>
+            <li>✅ 创建学生和助教账号（Django Admin）</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
