@@ -3,6 +3,19 @@
 
 {% block title %}{{ announcement.title }} — {{ semester.name }}{% endblock %}
 
+{% block extra_head %}
+{# KaTeX 数学公式渲染（国内 BootCDN） #}
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, { delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false}
+        ], throwOnError: false});"></script>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 py-8">
     {# 面包屑 #}
