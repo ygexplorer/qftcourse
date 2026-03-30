@@ -7,7 +7,7 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
     {# 面包屑 #}
     <a href="{% url 'courses:semester_home' semester.slug %}"
-       class="text-primary-600 hover:text-primary-700 text-sm mb-6 inline-block">&larr; 返回 {{ semester.name }}</a>
+       class="text-blue-600 hover:text-blue-700 text-sm mb-6 inline-block">&larr; 返回 {{ semester.name }}</a>
 
     {# 公告内容 #}
     <article class="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -33,8 +33,8 @@
             {% if announcement.content %}
             <div class="prose prose-gray max-w-none
                         prose-headings:text-gray-800 prose-p:text-gray-700
-                        prose-a:text-primary-600 prose-strong:text-gray-900
-                        prose-code:text-primary-700 prose-pre:bg-gray-50">
+                        prose-a:text-blue-600 prose-strong:text-gray-900
+                        prose-code:text-blue-700 prose-pre:bg-blue-50">
                 {{ announcement.content|markdown }}
             </div>
             {% else %}

@@ -16,6 +16,7 @@
 | 10 | 学生批量导入（Admin 上传 Excel） | ✅ 完成 |
 | 11 | 学生个人资料编辑（display_name / student_id） | ✅ 完成 |
 | 12 | 章节导航与讲义下载 | ✅ 完成 |
+| 13 | 首页视觉重设计（Hero/知识图谱/暗色模式） | ✅ 完成 |
 
 ## 已完成功能详情
 
@@ -140,6 +141,48 @@
 - [x] IntersectionObserver 滚动高亮当前可见标题
 - [x] 讲义下载入口卡片（章节标题下方，仅已登录 + 有 PDF 时显示）
 - [x] 数据库迁移 `0004_chapter_lecture_pdf`
+
+### 第十三阶段：首页视觉重设计
+
+**背景**：Phase 4 的首页仅有学期列表，功能性弱但视觉朴素。Phase 13 对首页进行全面视觉重设计，引入知识图谱可视化、Hero 动画、暗色模式等特性，大幅提升用户体验。
+
+#### base.html 全局增强
+
+- [x] 暗色模式支持：Tailwind `darkMode: 'class'` + localStorage 持久化 + IIFE 初始化（避免页面闪烁）
+- [x] 导航栏毛玻璃效果（`backdrop-blur-md`）+ 阴影边框（`shadow-sm border-b`）
+- [x] 全局页面过渡动画（`transition-colors duration-200`）
+- [x] Django messages 提示样式（成功/错误/默认三种颜色）
+- [x] 页脚 Copyright 2026
+- [x] `x-cloak` CSS 隐藏 Alpine 未加载时的闪烁
+- [x] 暗色模式切换按钮（太阳/月亮 SVG 图标，桌面端 + 手机端均有）
+
+#### home.html 完全重写
+
+- [x] **Hero 区域**：渐变背景（`from-slate-50 via-blue-50/60 to-indigo-50/40`）+ 3 个动态浮动圆形光斑（`hero-orb1/2/3`，`orbFloat` 动画 10-14s）+ SVG 同心圆装饰
+- [x] **课程标语**：学期徽章（脉冲圆点 + "2026 年春季学期 · 杭高院"）+ 大标题（"规范场"）+ 英文副标题（"Gauge Field Theory"）
+- [x] **进入课程按钮**：蓝色大按钮，悬停阴影提升 + 上移动画
+- [x] **知识图谱**（核心亮点）：
+  - 14 个节点分 4 行排列（SVG 连接线 + 流动动画 `dashFlow`）
+  - 节点颜色编码（蓝/橙/绿/紫），颜色定义在视图 `KNOWLEDGE_GROUPS` 常量中
+  - 每节点带发光光晕（`blur-md`）+ 毛玻璃卡片效果
+  - 悬停展开章节列表弹窗（popover）
+  - 有内容的节点显示绿色小圆点标记
+- [x] **动画系统**：`fadeUp` 淡入动画（0.55s，4 档延迟）+ `kg-flow` SVG 虚线流动
+- [x] **暗色模式适配**：`.dark .glass-card` 暗色毛玻璃效果
+- [x] **底部学期入口**：链接回学期首页
+
+#### home 视图增强
+
+- [x] `Chapter.group` 字段分组（`exclude(group='')` 排除未分组章节）
+- [x] `KNOWLEDGE_GROUPS` 常量（14 个节点元数据：id/label/row/num/color/glow/desc）
+- [x] 教师可看全部章节（含草稿），其他人只看已发布
+- [x] `chapters_by_group` 字典：按 group id 分组的章节列表，供模板悬停弹窗使用
+
+#### semester_home.html 公告区增强
+
+- [x] 置顶公告样式升级（琥珀色背景 `bg-amber-50`，醒目边框）
+- [x] 普通公告白色卡片 + 悬停高亮（`hover:border-primary-300 hover:bg-primary-50`）
+- [x] 公告条目右侧箭头图标（`group-hover` 动态颜色）
 
 ## 待完成
 

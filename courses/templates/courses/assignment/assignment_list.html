@@ -12,7 +12,7 @@
     {% if assignments %}
     <div class="space-y-4">
         {% for hw in assignments %}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition group cursor-pointer"
+        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-blue-200 transition group cursor-pointer"
              data-url="{% url 'courses:assignment_detail' hw.pk %}"
              onclick="if(event.target.closest('a')) return; window.location=this.dataset.url">
 
@@ -20,7 +20,7 @@
                 <div class="flex-1 min-w-0">
                     {# 标题行 #}
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="font-semibold text-gray-800 group-hover:text-primary-700">{{ hw.title }}</h3>
+                        <h3 class="font-semibold text-gray-800 group-hover:text-blue-700">{{ hw.title }}</h3>
                         {% if not hw.is_published %}
                         <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">草稿</span>
                         {% endif %}
@@ -66,7 +66,7 @@
                     {% if role != 'student' %}
                     <div class="mt-2">
                         <a href="{% url 'courses:grading_workstation' hw.pk %}"
-                           class="text-xs text-primary-600 hover:text-primary-700 hover:underline">
+                           class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
                             {{ hw.submission_count }} 份提交 → 评分工作台
                         </a>
                     </div>
@@ -74,7 +74,7 @@
                 </div>
 
                 {# 箭头 #}
-                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-blue-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>

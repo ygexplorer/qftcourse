@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
     {# 面包屑 #}
-    <a href="{% url 'courses:home' %}" class="text-primary-600 hover:text-primary-700 text-sm mb-4 inline-block">&larr; 返回首页</a>
+    <a href="{% url 'courses:home' %}" class="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">&larr; 返回首页</a>
 
     {# 学期标题 #}
     <div class="mb-8">
@@ -25,7 +25,7 @@
             </h2>
             {% if has_more_announcements %}
             <a href="{% url 'courses:announcement_list' semester.slug %}"
-               class="text-sm text-primary-600 hover:text-primary-700">全部公告 →</a>
+               class="text-sm text-blue-600 hover:text-blue-700">全部公告 →</a>
             {% endif %}
         </div>
 
@@ -37,10 +37,10 @@
                 <div class="flex items-start gap-3">
                     <span class="flex-shrink-0 mt-0.5 text-amber-500">📌</span>
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-semibold text-gray-800 group-hover:text-primary-700 truncate">{{ ann.title }}</h3>
+                        <h3 class="font-semibold text-gray-800 group-hover:text-blue-700 truncate">{{ ann.title }}</h3>
                         <p class="text-xs text-gray-400 mt-1">{{ ann.created_at|date:"Y-m-d" }}</p>
                     </div>
-                    <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-blue-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </div>
@@ -51,12 +51,12 @@
             {% for ann in recent_announcements %}
             <a href="{% url 'courses:announcement_detail' ann.pk %}"
                class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white
-                      hover:border-primary-300 hover:bg-primary-50 transition group">
+                      hover:border-blue-300 hover:bg-blue-50 transition group">
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-medium text-gray-800 group-hover:text-primary-700 truncate">{{ ann.title }}</h3>
+                    <h3 class="font-medium text-gray-800 group-hover:text-blue-700 truncate">{{ ann.title }}</h3>
                     <p class="text-xs text-gray-400 mt-1">{{ ann.created_at|date:"Y-m-d" }}</p>
                 </div>
-                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </a>
@@ -72,16 +72,16 @@
         <div class="space-y-3">
         {% for chapter in chapters %}
         <a href="{% url 'courses:chapter_detail' semester.slug chapter.slug %}"
-           class="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition group">
+           class="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-blue-200 transition group">
             <div class="flex items-start gap-4">
                 {# 序号 #}
-                <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-primary-50 text-primary-600 text-sm font-bold flex items-center justify-center">
+                <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 text-blue-600 text-sm font-bold flex items-center justify-center">
                     {{ chapter.order_index }}
                 </span>
                 {# 标题和摘要 #}
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                        <h3 class="font-semibold text-gray-800 group-hover:text-primary-700 truncate">
+                        <h3 class="font-semibold text-gray-800 group-hover:text-blue-700 truncate">
                             {{ chapter.title }}
                         </h3>
                         {% if not chapter.is_published %}
@@ -93,7 +93,7 @@
                     {% endif %}
                 </div>
                 {# 箭头 #}
-                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-blue-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>

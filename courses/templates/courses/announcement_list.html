@@ -6,7 +6,7 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
     {# 面包屑 #}
     <a href="{% url 'courses:semester_home' semester.slug %}"
-       class="text-primary-600 hover:text-primary-700 text-sm mb-4 inline-block">&larr; 返回 {{ semester.name }}</a>
+       class="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">&larr; 返回 {{ semester.name }}</a>
 
     {# 标题 #}
     <div class="mb-8">
@@ -23,17 +23,17 @@
                   {% if ann.is_pinned %}
                   bg-amber-50 border-amber-200 hover:bg-amber-100
                   {% else %}
-                  bg-white border-gray-200 hover:border-primary-300 hover:bg-primary-50
+                  bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50
                   {% endif %}">
             <div class="flex items-start gap-3">
                 {% if ann.is_pinned %}
                 <span class="flex-shrink-0 mt-0.5 text-amber-500">📌</span>
                 {% endif %}
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-semibold text-gray-800 group-hover:text-primary-700 truncate">{{ ann.title }}</h3>
+                    <h3 class="font-semibold text-gray-800 group-hover:text-blue-700 truncate">{{ ann.title }}</h3>
                     <p class="text-xs text-gray-400 mt-1">{{ ann.created_at|date:"Y-m-d" }}</p>
                 </div>
-                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-primary-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="flex-shrink-0 w-5 h-5 text-gray-300 group-hover:text-blue-400 transition mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>

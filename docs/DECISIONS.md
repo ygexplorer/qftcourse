@@ -152,3 +152,68 @@
 - 课程首页是所有学生的公共入口，包含课程内容导航
 - 作业只是课程的一部分，不应作为唯一入口
 - 导航栏始终可见，"我的作业"只需一次点击
+
+---
+
+## D-12: 暗色模式实现 — Tailwind darkMode + localStorage
+
+**决策**：使用 Tailwind CSS 的 `darkMode: 'class'` 策略，切换状态通过 localStorage 持久化，页面加载时用 IIFE 初始化（避免闪烁）。
+
+**理由**：
+- `darkMode: 'class'` 在 HTML 根元素上加 `class="dark"`，与 Tailwind 生态完全兼容
+- `localStorage` 持久化用户偏好，刷新不丢失
+- IIFE 初始化避免页面加载瞬间亮色背景闪烁
+- 不依赖操作系统偏好（`prefers-color-scheme`）作为唯一来源，用户设置优先于系统设置
+
+**实现**：
+- `base.html` 中 Tailwind config 设置 `darkMode: 'class'`
+- 切换按钮：`document.documentElement.classList.toggle('dark')` + `localStorage.setItem('theme', ...)`
+- 初始化 IIFE：读取 localStorage，无则取 `prefers-color-scheme`
+- CSS：`transition-colors duration-200` 全局过渡，暗色色值用 `dark:` 前缀
+
+---
+
+## D-13: 首页知识图谱 — 静态节点定义 + 动态章节数据
+
+**决策**：首页展示的 14 个知识节点（元数据：颜色/标签/位置）硬编码在视图 `KNOWLEDGE_GROUPS` 常量中，章节是否属于某节点由 `Chapter.group` 字段动态决定。
+
+**理由**：
+- 知识图谱的节点结构（顺序、颜色、描述）反映课程知识体系，应由开发者/教师在代码层面定义，不适合放到数据库
+- 章节与节点的归属关系由 `Chapter.group` 字段动态关联，支持后续调整
+- `Chapter.group=''`（空字符串）的章节不显示在图谱中，保持灵活性
+- 硬编码 14 个节点与讲义 14 个主干章节一一对应，视觉上整齐
+
+**KNOWLEDGE_GROUPS 结构**：
+```python
+{
+    'id': 'review',   # 与 Chapter.group 值对应
+    'label': '基础回顾',  # 节点显示标签
+    'row': 1,         # 图谱第几行（1-4）
+    'num': 1,        # 节点序号（1-14）
+    'color': '#475569',  # 节点主色（十六进制）
+    'glow': '#64748b',   # 光晕色
+    'desc': '经典场论 · 正则量子化 · SD方程',  # 节点描述
+}
+```
+
+---
+
+## D-14: 知识图谱节点分组方式 — Chapter.group 字段
+
+**决策**：`Chapter` 模型新增 `group` 字段（CharField），用于将章节归属到知识图谱的某个节点。同一个 group 下的多个章节在节点悬停时显示为列表。
+
+**理由**：
+- 一个知识节点下可能包含多个章节（如"基础回顾"可能有多章），需要一对多关系
+- `group=''` 表示该章节不参与知识图谱展示（可能是补充章节或草稿）
+- 教师通过 Admin 方便地编辑章节的 group 值，无需改代码
+
+---
+
+## D-15: 知识图谱视图逻辑 — 教师可见草稿章节
+
+**决策**：`home` 视图中，教师用户（`is_teacher=True`）可以看全部章节（含草稿），其他人只看 `is_published=True` 的已发布章节。
+
+**理由**：
+- 教师需要预览草稿章节在图谱中的位置
+- 学生和匿名用户只看已发布内容是合理的课程保护策略
+- 实现方式：视图层判断，模板不需要额外判断，逻辑集中

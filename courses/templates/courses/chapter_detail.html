@@ -56,19 +56,19 @@
     <div class="sticky top-0 z-30 bg-white border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <div class="flex items-center gap-2 text-sm min-w-0">
-                <a href="{% url 'courses:home' %}" class="text-primary-600 hover:text-primary-700 shrink-0">首页</a>
+                <a href="{% url 'courses:home' %}" class="text-blue-600 hover:text-blue-700 shrink-0">首页</a>
                 <span class="text-gray-300">/</span>
-                <a href="{% url 'courses:semester_home' semester.slug %}" class="text-primary-600 hover:text-primary-700 shrink-0">{{ semester.name }}</a>
+                <a href="{% url 'courses:semester_home' semester.slug %}" class="text-blue-600 hover:text-blue-700 shrink-0">{{ semester.name }}</a>
                 <span class="text-gray-300 shrink-0">/</span>
                 <span class="text-gray-500 truncate">{{ chapter.title }}</span>
             </div>
             {# 手机端：目录按钮 #}
-            <button @click="drawerOpen = true" class="lg:hidden flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition">
+            <button @click="drawerOpen = true" class="lg:hidden flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 目录
             </button>
             {# 桌面端：收缩按钮 #}
-            <button @click="sidebarOpen = !sidebarOpen" class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition">
+            <button @click="sidebarOpen = !sidebarOpen" class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition">
                 <svg class="w-4 h-4" :class="sidebarOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 0.2s"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
                 <span x-text="sidebarOpen ? '收起' : '目录'"></span>
             </button>
@@ -105,7 +105,7 @@
             <nav class="sidebar-toc overflow-y-auto pr-2 pb-8">
                 {# 学期章节列表 #}
                 <div class="mb-4">
-                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-primary-600 uppercase tracking-wider">{{ semester.name }}</a>
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-blue-600 uppercase tracking-wider">{{ semester.name }}</a>
                 </div>
 
                 {% for ch in chapter_list %}
@@ -113,7 +113,7 @@
                 {# 当前章节 — 展开子目录 #}
                 <div class="mb-1">
                     <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}"
-                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg border-l-3 border-primary-500">
+                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg border-l-3 border-blue-500">
                         {{ ch.title }}
                     </a>
                     {# 子目录（H2/H3） #}
@@ -121,7 +121,7 @@
                     <div class="ml-3 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
                         {% for item in toc_list %}
                         <a href="#{{ item.id }}"
-                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-primary-600 rounded-r-md border-l-2 border-transparent"
+                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-blue-600 rounded-r-md border-l-2 border-transparent"
                            :class="activeHeading === '{{ item.id }}' && 'active'">
                             {% if item.level == 3 %}<span class="text-gray-300 mr-1">·</span>{% endif %}
                             {{ item.title }}
@@ -162,21 +162,21 @@
 
             <nav class="p-4">
                 <div class="mb-4">
-                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-primary-600 uppercase tracking-wider">{{ semester.name }}</a>
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-xs font-medium text-gray-400 hover:text-blue-600 uppercase tracking-wider">{{ semester.name }}</a>
                 </div>
 
                 {% for ch in chapter_list %}
                 {% if ch.pk == chapter.pk %}
                 <div class="mb-1">
                     <a href="{% url 'courses:chapter_detail' semester.slug ch.slug %}" @click="drawerOpen = false"
-                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg border-l-3 border-primary-500">
+                       class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg border-l-3 border-blue-500">
                         {{ ch.title }}
                     </a>
                     {% if toc_list %}
                     <div class="ml-3 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
                         {% for item in toc_list %}
                         <a href="#{{ item.id }}" @click="drawerOpen = false"
-                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-primary-600 rounded-r-md border-l-2 border-transparent">
+                           class="toc-item block px-3 py-1 text-xs text-gray-500 hover:text-blue-600 rounded-r-md border-l-2 border-transparent">
                             {% if item.level == 3 %}<span class="text-gray-300 mr-1">·</span>{% endif %}
                             {{ item.title }}
                         </a>
@@ -238,9 +238,9 @@
                 <div class="flex items-center justify-between gap-4">
                     {% if prev_chapter %}
                     <a href="{% url 'courses:chapter_detail' semester.slug prev_chapter.slug %}"
-                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group">
+                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 transition group">
                         <span class="text-xs text-gray-400">上一章</span>
-                        <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
+                        <div class="text-sm font-medium text-gray-700 group-hover:text-blue-700 truncate mt-1">
                             {{ prev_chapter.title }}
                         </div>
                     </a>
@@ -250,9 +250,9 @@
 
                     {% if next_chapter %}
                     <a href="{% url 'courses:chapter_detail' semester.slug next_chapter.slug %}"
-                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:bg-primary-50 transition group text-right">
+                       class="flex-1 bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50 transition group text-right">
                         <span class="text-xs text-gray-400">下一章</span>
-                        <div class="text-sm font-medium text-gray-700 group-hover:text-primary-700 truncate mt-1">
+                        <div class="text-sm font-medium text-gray-700 group-hover:text-blue-700 truncate mt-1">
                             {{ next_chapter.title }}
                         </div>
                     </a>
@@ -263,7 +263,7 @@
 
                 {# 返回学期页 #}
                 <div class="mt-6 text-center">
-                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-sm text-gray-400 hover:text-primary-600">
+                    <a href="{% url 'courses:semester_home' semester.slug %}" class="text-sm text-gray-400 hover:text-blue-600">
                         ← 返回 {{ semester.name }}
                     </a>
                 </div>

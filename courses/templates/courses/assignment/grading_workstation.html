@@ -11,7 +11,7 @@
     {# ── 顶部导航 ── #}
     <div class="flex flex-wrap items-center gap-3 mb-6">
         <a href="{% url 'courses:assignment_list' %}"
-           class="text-primary-600 hover:text-primary-700 text-sm">&larr; 返回作业列表</a>
+           class="text-blue-600 hover:text-blue-700 text-sm">&larr; 返回作业列表</a>
         <span class="text-gray-300">|</span>
         <a href="{% url 'courses:assignment_detail' assignment.pk %}"
            class="text-gray-500 hover:text-gray-700 text-sm">作业详情</a>
@@ -98,7 +98,7 @@
             {# 搜索框 #}
             <div class="flex-1 min-w-[200px]">
                 <input type="text" x-model="search" placeholder="🔍 搜索学生姓名…"
-                       class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                       class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
         </div>
     </div>
@@ -130,7 +130,7 @@
                     {# 第1行：学生信息 + 状态标签 #}
                     <div class="flex flex-wrap items-center gap-3 mb-3">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
                                 {{ sub.student.display_name|default:sub.student.username|make_initial }}
                             </div>
                             <div>
@@ -171,7 +171,7 @@
                             {% if sub.file %}
                             <div class="flex items-center gap-2">
                                 <a href="{% url 'courses:download_submission' sub.pk %}"
-                                   class="text-primary-600 hover:text-primary-700 hover:underline truncate"
+                                   class="text-blue-600 hover:text-blue-700 hover:underline truncate"
                                    title="{{ sub.file_name }}">
                                     {{ sub.file_name }}
                                 </a>
@@ -222,7 +222,7 @@
                                     </label>
                                     <input type="number" name="score" min="0" max="100"
                                            value="{% if sub.score is not None %}{{ sub.score }}{% endif %}"
-                                           class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-lg text-center font-bold focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                           class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-lg text-center font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                            placeholder="—"
                                            :id="'score-' + {{ sub.pk }}">
                                 </div>
@@ -232,13 +232,13 @@
                                         评语 <span class="text-gray-400 font-normal text-xs">（可选）</span>
                                     </label>
                                     <textarea name="feedback" rows="2"
-                                              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                               placeholder="给学生写评语…">{{ sub.feedback }}</textarea>
                                 </div>
                                 {# 按钮 #}
                                 <div class="flex flex-col gap-2 pt-5 flex-shrink-0">
                                     <button type="submit"
-                                            class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium whitespace-nowrap">
+                                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
                                         💾 保存
                                     </button>
                                     <button type="submit" name="next_mode" value="next_ungraded"
@@ -344,9 +344,9 @@ function gradingApp() {
                             // 高亮闪烁效果
                             const card = target.querySelector('.bg-white');
                             if (card) {
-                                card.classList.add('ring-2', 'ring-primary-400');
+                                card.classList.add('ring-2', 'ring-blue-400');
                                 setTimeout(() => {
-                                    card.classList.remove('ring-2', 'ring-primary-400');
+                                    card.classList.remove('ring-2', 'ring-blue-400');
                                 }, 2000);
                             }
                         }, 100);
