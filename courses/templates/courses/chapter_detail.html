@@ -4,6 +4,17 @@
 {% block title %}{{ chapter.title }} — {{ semester.name }}{% endblock %}
 
 {% block extra_head %}
+{# KaTeX 数学公式渲染 #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, { delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false}
+        ], throwOnError: false});"></script>
+
 <style>
     /* Markdown 内容排版样式 */
     .markdown-body { line-height: 1.8; color: #374151; }

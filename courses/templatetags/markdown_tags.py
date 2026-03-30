@@ -12,12 +12,17 @@ register = template.Library()
 
 @register.filter(name='markdown')
 def markdown_filter(text):
-    """将 Markdown 文本转为 HTML（安全输出）"""
+    """将 Markdown 文本转为 HTML（安全输出），支持 LaTeX 数学公式"""
     if not text:
         return ''
     html = markdown.markdown(
         text,
-        extensions=['fenced_code', 'tables', 'toc'],
+        extensions=['fenced_code', 'tables', 'toc', 'markdown.extensions.math'],
+        extension_configs={
+            'markdown.extensions.math': {
+                'enable_inline': True,
+            },
+        },
     )
     return mark_safe(html)
 
