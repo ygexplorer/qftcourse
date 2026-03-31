@@ -3,7 +3,7 @@
 ## 阶段总览
 
 | 阶段 | 内容 | 状态 |
-|------|------|------|
+:|------|------|------:|
 | 1 | 技术方案 | ✅ 完成 |
 | 2 | 项目初始化 + 模型 + 基础模板 | ✅ 完成 |
 | 3 | 用户注册/登录/权限 | ✅ 完成 |
@@ -16,7 +16,8 @@
 | 10 | 学生批量导入（Admin 上传 Excel） | ✅ 完成 |
 | 11 | 学生个人资料编辑（display_name / student_id） | ✅ 完成 |
 | 12 | 章节导航与讲义下载 | ✅ 完成 |
-| 13 | 首页视觉重设计（Hero/知识图谱/暗色模式） | ✅ 完成 |
+| 13 | 首页视觉重设计（Hero/知识图谱） | ✅ 完成 |
+| 14 | 暗色模式移除 + Favicon图标 + 数学公式支持 | ✅ 完成 |
 
 ## 已完成功能详情
 
@@ -144,17 +145,15 @@
 
 ### 第十三阶段：首页视觉重设计
 
-**背景**：Phase 4 的首页仅有学期列表，功能性弱但视觉朴素。Phase 13 对首页进行全面视觉重设计，引入知识图谱可视化、Hero 动画、暗色模式等特性，大幅提升用户体验。
+**背景**：Phase 4 的首页仅有学期列表，功能性弱但视觉朴素。Phase 13 对首页进行全面视觉重设计，引入知识图谱可视化、Hero 动画，大幅提升用户体验。
 
 #### base.html 全局增强
 
-- [x] 暗色模式支持：Tailwind `darkMode: 'class'` + localStorage 持久化 + IIFE 初始化（避免页面闪烁）
 - [x] 导航栏毛玻璃效果（`backdrop-blur-md`）+ 阴影边框（`shadow-sm border-b`）
 - [x] 全局页面过渡动画（`transition-colors duration-200`）
 - [x] Django messages 提示样式（成功/错误/默认三种颜色）
 - [x] 页脚 Copyright 2026
 - [x] `x-cloak` CSS 隐藏 Alpine 未加载时的闪烁
-- [x] 暗色模式切换按钮（太阳/月亮 SVG 图标，桌面端 + 手机端均有）
 
 #### home.html 完全重写
 
@@ -168,7 +167,6 @@
   - 悬停展开章节列表弹窗（popover）
   - 有内容的节点显示绿色小圆点标记
 - [x] **动画系统**：`fadeUp` 淡入动画（0.55s，4 档延迟）+ `kg-flow` SVG 虚线流动
-- [x] **暗色模式适配**：`.dark .glass-card` 暗色毛玻璃效果
 - [x] **底部学期入口**：链接回学期首页
 
 #### home 视图增强
@@ -183,6 +181,29 @@
 - [x] 置顶公告样式升级（琥珀色背景 `bg-amber-50`，醒目边框）
 - [x] 普通公告白色卡片 + 悬停高亮（`hover:border-primary-300 hover:bg-primary-50`）
 - [x] 公告条目右侧箭头图标（`group-hover` 动态颜色）
+
+### 第十四阶段：暗色模式移除 + Favicon + 数学公式
+
+#### 暗色模式移除
+
+- [x] **问题**：Tailwind CDN 模式下 `darkMode: 'class'` 配置不生效——dark: 样式被生成在 `@media (prefers-color-scheme: dark)` 媒体查询中，而非预期的 `.dark .dark\:xxx` 类选择器。暗色模式切换从未真正工作过。
+- [x] **修复**：完全移除暗色模式切换按钮（桌面端+手机端）、IIFE 初始化脚本、`darkMode: 'class'` 配置、所有 dark: 类
+- [x] **清理文件**：base.html、accounts/login.html、accounts/register.html、accounts/profile_edit.html、accounts/password_change.html、courses/home.html
+
+#### 数学公式支持（KaTeX）
+
+- [x] **方案**：前端渲染——KaTeX 0.16.9 + auto-render 纯客户端处理数学公式
+- [x] **CDN**：国内 BootCDN（`cdn.bootcdn.net`，替换有访问问题的 jsdelivr）
+- [x] **支持语法**：$inline$、`$$display$$`、`\[...\]`、`\(...\)`
+- [x] **修改文件**：chapter_detail.html（KaTeX CDN CSS/JS）、announcement_detail.html（同上）
+- [x] **注意**：依赖 BootCDN 第三方服务长期稳定性；如遇 CDN 失效需备选 75CDN 或改用后端渲染方案
+
+#### Favicon 图标
+
+- [x] **图标**：AI生成，深蓝色圆球+白色纤维丛曲线，象征规范场/纤维丛联络
+- [x] **文件**：`static/favicon/favicon.png`
+- [x] **引用**：base.html 添加 `<link rel="icon">` 和 `<link rel="apple-touch-icon">`
+- [x] **Bug 修复**：`settings.py` 添加 `STATICFILES_DIRS = [BASE_DIR / 'static']`（之前项目的 static 目录不会被 collectstatic 收集）
 
 ## 待完成
 

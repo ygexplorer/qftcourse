@@ -155,21 +155,30 @@
 
 ---
 
-## D-12: 暗色模式实现 — Tailwind darkMode + localStorage
+## D-12: ~~暗色模式实现~~ → **已废弃**
 
-**决策**：使用 Tailwind CSS 的 `darkMode: 'class'` 策略，切换状态通过 localStorage 持久化，页面加载时用 IIFE 初始化（避免闪烁）。
+**决策**：完全移除暗色模式。
+
+**原因**：Tailwind CDN 模式下 `darkMode: 'class'` 配置不生效——dark: 样式被生成在 `@media (prefers-color-scheme: dark)` 媒体查询中，而非预期的 `.dark .dark\:xxx` 类选择器。暗色模式切换从未真正工作过。
+
+**实现**：移除切换按钮、IIFE 脚本、`darkMode: 'class'` 配置、所有 dark: 类。
+
+---
+
+## D-16: 数学公式渲染 — KaTeX 前端渲染 + 国内 CDN
+
+**决策**：章节内容和公告的数学公式使用 KaTeX 前端渲染，通过国内 BootCDN 加载。
 
 **理由**：
-- `darkMode: 'class'` 在 HTML 根元素上加 `class="dark"`，与 Tailwind 生态完全兼容
-- `localStorage` 持久化用户偏好，刷新不丢失
-- IIFE 初始化避免页面加载瞬间亮色背景闪烁
-- 不依赖操作系统偏好（`prefers-color-scheme`）作为唯一来源，用户设置优先于系统设置
+- Python-Markdown 标准库无 math 扩展，安装第三方扩展（mdx-math）有网络/CDN 稳定性问题
+- KaTeX 的 auto-render 是纯前端处理：扫描 `$...$` / `$$...$$` 文本直接在浏览器渲染，不需要后端参与
+- 后端只负责把 Markdown 转 HTML，`$...$` 原文原样输出，KaTeX 在浏览器端渲染
 
-**实现**：
-- `base.html` 中 Tailwind config 设置 `darkMode: 'class'`
-- 切换按钮：`document.documentElement.classList.toggle('dark')` + `localStorage.setItem('theme', ...)`
-- 初始化 IIFE：读取 localStorage，无则取 `prefers-color-scheme`
-- CSS：`transition-colors duration-200` 全局过渡，暗色色值用 `dark:` 前缀
+**CDN 选择**：BootCDN（`cdn.bootcdn.net`）替代 jsdelivr（国内访问有问题）。
+
+**风险**：依赖 BootCDN 第三方服务长期稳定性。如遇失效可换 75CDN（`lib.baomitu.com`）。
+
+**支持语法**：`$inline$`、`$$display$$`、`\[...\]`、`\(...\)`
 
 ---
 
@@ -217,3 +226,33 @@
 - 教师需要预览草稿章节在图谱中的位置
 - 学生和匿名用户只看已发布内容是合理的课程保护策略
 - 实现方式：视图层判断，模板不需要额外判断，逻辑集中
+
+---
+
+## D-17: 网站 Favicon 图标
+
+**决策**：课程网站使用 AI 生成的 Favicon 图标，象征规范场/纤维丛联络。
+
+**图标设计**：深蓝色圆球 + 三条白色曲线，象征纤维丛上的联络（Connection）。
+
+**实现**：
+- AI 生成图标文件：`static/favicon/favicon.png`
+- `base.html` 添加 `<link rel="icon">` 和 `<link rel="apple-touch-icon">`
+- `settings.py` 添加 `STATICFILES_DIRS = [BASE_DIR / 'static']`（使 collectstatic 能收集项目 static 目录）
+
+---
+
+## D-18: STATICFILES_DIRS 配置 — 项目 static 目录收集
+
+**问题**：部署后发现项目的 `static/` 目录（favicon 等）不会被 `collectstatic` 收集到 `staticfiles/` 目录，导致文件无法通过 Nginx 访问。
+
+**原因**：`settings.py` 中只有 `STATIC_URL` 和 `STATIC_ROOT`，缺少 `STATICFILES_DIRS`。
+
+**修复**：`settings.py` 添加：
+```python
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # 项目根目录 static/ 目录（favicon 等）
+]
+```
+
+**教训**：后续新加任何 static 文件，都需要确保此配置存在。
