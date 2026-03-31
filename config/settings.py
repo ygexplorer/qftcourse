@@ -114,6 +114,9 @@ USE_TZ = True
 # ──────────────────────────────────────────
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # collectstatic 收集目标
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # 项目根目录 static/ 目录（favicon 等）
+]
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', str(BASE_DIR / 'media'))
