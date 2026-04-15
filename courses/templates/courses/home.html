@@ -192,9 +192,10 @@
                 {% for group in knowledge_groups %}
                 {% if group.row == 2 %}
                 {% with chapters_list=chapters_by_group|get_item:group.id %}
-                <div class="kg-node flex flex-col items-center gap-2">
+                <div class="kg-node flex flex-col items-center gap-2"
+                     {% if chapters_list %}style="cursor:pointer" onclick="var lnk=this.closest('.kg-node').querySelector('a.chapter-link');if(lnk)window.location=lnk.href"{% endif %}>
                     <!-- 节点圆 -->
-                    <div class="relative">
+                    <div class="relative" @click="window.location = this.querySelector('a.chapter-link')?.href || '#'">
                         <div class="absolute inset-0 rounded-2xl blur-md opacity-20"
                              style="background:{{ group.color }}; transform:scale(1.25);"></div>
                         <div class="relative glass-card rounded-2xl border-2 p-4 text-center transition-all duration-300 hover:border-transparent"
@@ -251,8 +252,9 @@
                 {% for group in knowledge_groups %}
                 {% if group.row == 3 %}
                 {% with chapters_list=chapters_by_group|get_item:group.id %}
-                <div class="kg-node flex flex-col items-center gap-2">
-                    <div class="relative">
+                <div class="kg-node flex flex-col items-center gap-2"
+                     {% if chapters_list %}style="cursor:pointer" onclick="var lnk=this.closest('.kg-node').querySelector('a.chapter-link');if(lnk)window.location=lnk.href"{% endif %}>
+                    <div class="relative" @click="window.location = this.querySelector('a.chapter-link')?.href || '#'">
                         <div class="absolute inset-0 rounded-2xl blur-md opacity-20"
                              style="background:{{ group.color }}; transform:scale(1.25);"></div>
                         <div class="relative glass-card rounded-2xl border-2 p-4 text-center transition-all duration-300 hover:border-transparent"
@@ -306,8 +308,9 @@
                 {% for group in knowledge_groups %}
                 {% if group.row == 4 %}
                 {% with chapters_list=chapters_by_group|get_item:group.id %}
-                <div class="kg-node flex flex-col items-center gap-2">
-                    <div class="relative">
+                <div class="kg-node flex flex-col items-center gap-2"
+                     {% if chapters_list %}style="cursor:pointer" onclick="var lnk=this.closest('.kg-node').querySelector('a.chapter-link');if(lnk)window.location=lnk.href"{% endif %}>
+                    <div class="relative" @click="window.location = this.querySelector('a.chapter-link')?.href || '#'">
                         <div class="absolute inset-0 rounded-2xl blur-md opacity-20"
                              style="background:{{ group.color }}; transform:scale(1.25);"></div>
                         <div class="relative glass-card rounded-2xl border-2 p-4 text-center transition-all duration-300 hover:border-transparent"
