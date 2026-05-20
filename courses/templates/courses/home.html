@@ -97,7 +97,7 @@
 
     <div class="text-center mb-10">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">课程知识图谱</h2>
-        <p class="text-gray-400 text-sm">共 14 个核心章节</p>
+        <p class="text-gray-400 text-sm">共 13 个核心章节</p>
     </div>
 
     <!-- 整体布局：两栏纵向排列，SVG连接线在中间 -->
@@ -229,26 +229,29 @@
             </div>
         </div>
 
-        <!-- ──── 第3行：节点 10-12 ──── -->
+        <!-- ──── 第3行：节点 10-13 ──── -->
         <div class="relative" style="padding-top:8px">
             <svg class="absolute -top-8 left-0 w-full h-16 pointer-events-none" viewBox="0 0 900 60" preserveAspectRatio="none">
                 <defs>
                     <linearGradient id="row3Line" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%"   stop-color="#10b981" stop-opacity="0.2"/>
-                        <stop offset="50%"  stop-color="#14b8a6" stop-opacity="0.2"/>
-                        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.2"/>
+                        <stop offset="33%"  stop-color="#14b8a6" stop-opacity="0.2"/>
+                        <stop offset="66%"  stop-color="#06b6d4" stop-opacity="0.2"/>
+                        <stop offset="100%" stop-color="#6366f1" stop-opacity="0.2"/>
                     </linearGradient>
                 </defs>
-                <line x1="225" y1="10" x2="675" y2="10" stroke="url(#row3Line)" stroke-width="1.5" class="kg-flow"/>
-                <line x1="225" y1="10" x2="225" y2="58" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
-                <line x1="450" y1="10" x2="450" y2="58" stroke="#14b8a6" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
-                <line x1="675" y1="10" x2="675" y2="58" stroke="#06b6d4" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
-                <circle cx="225" cy="10" r="4" fill="#10b981" opacity="0.5"/>
-                <circle cx="450" cy="10" r="4" fill="#14b8a6" opacity="0.5"/>
-                <circle cx="675" cy="10" r="4" fill="#06b6d4" opacity="0.5"/>
+                <line x1="150" y1="10" x2="750" y2="10" stroke="url(#row3Line)" stroke-width="1.5" class="kg-flow"/>
+                <line x1="150" y1="10" x2="150" y2="58" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
+                <line x1="350" y1="10" x2="350" y2="58" stroke="#14b8a6" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
+                <line x1="550" y1="10" x2="550" y2="58" stroke="#06b6d4" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
+                <line x1="750" y1="10" x2="750" y2="58" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
+                <circle cx="150" cy="10" r="4" fill="#10b981" opacity="0.5"/>
+                <circle cx="350" cy="10" r="4" fill="#14b8a6" opacity="0.5"/>
+                <circle cx="550" cy="10" r="4" fill="#06b6d4" opacity="0.5"/>
+                <circle cx="750" cy="10" r="4" fill="#6366f1" opacity="0.5"/>
             </svg>
 
-            <div class="flex justify-center items-start gap-12">
+            <div class="flex justify-center items-start gap-8">
                 {% for group in knowledge_groups %}
                 {% if group.row == 3 %}
                 {% with chapters_list=chapters_by_group|get_item:group.id %}
@@ -281,62 +284,6 @@
                         {% endif %}
                     </div>
                     <p class="text-xs text-gray-400 dark:text-gray-500 leading-snug max-w-[140px] text-center">{{ group.desc }}</p>
-                </div>
-                {% endwith %}
-                {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- ──── 第4行：节点 13-14 ──── -->
-        <div class="relative" style="padding-top:8px">
-            <svg class="absolute -top-8 left-0 w-full h-16 pointer-events-none" viewBox="0 0 900 60" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="row4Line" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%"   stop-color="#6366f1" stop-opacity="0.25"/>
-                        <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.25"/>
-                    </linearGradient>
-                </defs>
-                <line x1="300" y1="10" x2="600" y2="10" stroke="url(#row4Line)" stroke-width="1.5" class="kg-flow"/>
-                <line x1="300" y1="10" x2="300" y2="58" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
-                <line x1="600" y1="10" x2="600" y2="58" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35" class="kg-flow"/>
-                <circle cx="300" cy="10" r="4" fill="#6366f1" opacity="0.5"/>
-                <circle cx="600" cy="10" r="4" fill="#0ea5e9" opacity="0.5"/>
-            </svg>
-
-            <div class="flex justify-center items-start gap-16">
-                {% for group in knowledge_groups %}
-                {% if group.row == 4 %}
-                {% with chapters_list=chapters_by_group|get_item:group.id %}
-                <div class="kg-node flex flex-col items-center gap-2"
-                     {% if chapters_list %}style="cursor:pointer" onclick="var lnk=this.closest('.kg-node').querySelector('a.chapter-link');if(lnk)window.location=lnk.href"{% endif %}>
-                    <div class="relative" @click="window.location = this.querySelector('a.chapter-link')?.href || '#'">
-                        <div class="absolute inset-0 rounded-2xl blur-md opacity-20"
-                             style="background:{{ group.color }}; transform:scale(1.25);"></div>
-                        <div class="relative glass-card rounded-2xl border-2 p-4 text-center transition-all duration-300 hover:border-transparent"
-                             style="border-color:{{ group.color }}40; background:rgba(255,255,255,0.92); min-width:160px;">
-                            <div class="text-2xl font-bold mb-1" style="color:{{ group.color }};">{{ group.num }}</div>
-                            <div class="text-sm font-semibold leading-tight" style="color:{{ group.color }};">{{ group.label }}</div>
-                        </div>
-                        {% if chapters_list %}
-                        <div class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-800 shadow-sm"></div>
-                        {% endif %}
-                        {% if chapters_list %}
-                        <div class="hidden group-hover:block absolute left-1/2 -translate-x-1/2 top-full mt-3 z-20
-                                    w-52 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700
-                                    shadow-xl p-3 text-left">
-                            <p class="text-xs text-gray-400 mb-2 font-medium" style="color:{{ group.color }};">章节</p>
-                            {% for ch in chapters_list %}
-                            <a href="{% url 'courses:chapter_detail' current_semester.slug ch.slug %}" class="chapter-link"
-                               class="block text-xs text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400
-                                      py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-slate-700 truncate">
-                                {{ ch.title }}
-                            </a>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 leading-snug max-w-[150px] text-center">{{ group.desc }}</p>
                 </div>
                 {% endwith %}
                 {% endif %}

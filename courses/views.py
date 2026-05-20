@@ -37,7 +37,7 @@ def home(request):
     for ch in chapters_qs:
         chapters_by_group[ch.group].append(ch)
 
-    # 图谱节点定义（14个，对应讲义14个主干章节）
+    # 图谱节点定义（13个，对应讲义13个主干章节）
     KNOWLEDGE_GROUPS = [
         # 第1行（1-6）
         {'id': 'review',   'label': '基础回顾',        'row': 1, 'num': 1, 'color': '#475569', 'glow': '#64748b',
@@ -66,11 +66,9 @@ def home(request):
          'desc': 'RG 方程 · 标度不变'},
         {'id': 'anomaly',  'label': '反常',            'row': 3, 'num': 12, 'color': '#06b6d4', 'glow': '#22d3ee',
          'desc': 'ABJ 反常 · 规范反常'},
-        # 第4行（13-14）
-        {'id': 'grav',     'label': '规范-引力之联系', 'row': 4, 'num': 13, 'color': '#6366f1', 'glow': '#818cf8',
+        # 第3行（10-13）
+        {'id': 'grav',     'label': '规范-引力之联系', 'row': 3, 'num': 13, 'color': '#6366f1', 'glow': '#818cf8',
          'desc': '全息对偶和平方关系'},
-        {'id': 'smatrix',  'label': 'S矩阵在壳性方法', 'row': 4, 'num': 14, 'color': '#0ea5e9', 'glow': '#38bdf8',
-         'desc': 'On-shell unitarity'},
     ]
 
     return render(request, 'courses/home.html', {

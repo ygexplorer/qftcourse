@@ -86,7 +86,6 @@ class Chapter(TimeStampedModel):
         ('rger',      '11 重整化群'),
         ('anomaly',   '12 反常'),
         ('grav',      '13 规范-引力之联系'),
-        ('smatrix',   '14 S矩阵在壳性方法'),
     ]
 
     semester = models.ForeignKey(
